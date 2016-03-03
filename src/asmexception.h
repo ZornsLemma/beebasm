@@ -116,6 +116,7 @@ class AsmException_SyntaxError : public AsmException
 public:
 
 	AsmException_SyntaxError()
+		:	m_column( 0 )
 	{
 	}
 

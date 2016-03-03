@@ -1614,7 +1614,10 @@ void LineParser::HandlePutFile()
 
 		if ( !inputFile )
 		{
-			throw AsmException_AssembleError_FileOpen();
+			AsmException_AssembleError_FileOpen e;
+			e.SetString( m_line );
+			e.SetColumn( m_column );
+			throw e;
 		}
 
 		inputFile.seekg( 0, ios_base::end );
@@ -1724,11 +1727,15 @@ void LineParser::HandlePutBasic()
 		{
 			if (GetBASICErrorNum() == 2)
 			{
-				throw AsmException_AssembleError_FileOpen();
+				AsmException_AssembleError_FileOpen e;
+				e.SetString( m_line );
+				e.SetColumn( m_column );
+				throw e;
 			}
 			else
 			{
-				throw AsmException_FileError( hostFilename.c_str() );
+				std::string message = hostFilename + ": " + GetBASICError();
+				throw AsmException_UserError( m_line, m_column, message );
 			}
 		}
 
