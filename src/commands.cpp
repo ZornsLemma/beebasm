@@ -75,7 +75,8 @@ const LineParser::Token	LineParser::m_gaTokenTable[] =
 	{ "MACRO",		&LineParser::HandleMacro,				&SourceFile::StartMacro },
 	{ "ENDMACRO",	&LineParser::HandleEndMacro,			&SourceFile::EndMacro },
 	{ "ERROR",		&LineParser::HandleError,				0 },
-	{ "COPYBLOCK",	&LineParser::HandleCopyBlock,			0 }
+	{ "COPYBLOCK",	&LineParser::HandleCopyBlock,			0 },
+	{ "RANDOMIZE",  &LineParser::HandleRandomize,			0 }
 };
 
 
@@ -1979,6 +1980,41 @@ void LineParser::HandleCopyBlock()
 	{
 		ObjectCode::Instance().CopyBlock( start, end, dest );
 	}
+
+	if ( m_column < m_line.length() && m_line[ m_column ] == ',' )
+	{
+		// Unexpected comma (remembering that an expression can validly end with a comma)
+		throw AsmException_SyntaxError_UnexpectedComma( m_line, m_column );
+	}
+}
+
+
+/*************************************************************************************************/
+/**
+	LineParser::HandleRandomize()
+*/
+/*************************************************************************************************/
+void LineParser::HandleRandomize()
+{
+	unsigned int value;
+
+	try
+	{
+		value = EvaluateExpressionAsUnsignedInt();
+	}
+	catch ( AsmException_SyntaxError_SymbolNotDefined& )
+	{
+		if ( GlobalData::Instance().IsFirstPass() )
+		{
+			value = 0;
+		}
+		else
+		{
+			throw;
+		}
+	}
+
+	srand( value );
 
 	if ( m_column < m_line.length() && m_line[ m_column ] == ',' )
 	{

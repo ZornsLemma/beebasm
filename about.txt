@@ -657,6 +657,13 @@ ASSERT a [, b, c, ...]
   Abort assembly if any of the expressions is false.
 
 
+RANDOMIZE <n>
+
+  Seed the random number generator used by the RND() function.  If this is
+  not used, the random number generator is seeded based on the current time
+  and so each build of a program using RND() will be different.
+
+
 
 
 7. TIPS AND TRICKS
