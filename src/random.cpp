@@ -32,11 +32,11 @@ static unsigned long modulus = 2147483647;
 
 void beebasm_srand(unsigned long seed)
 {
-        if ( ( seed == 0 ) || ( seed >= modulus ) )
-        {
-                seed = 1;
-        }
         state = seed % modulus;
+        if ( state == 0 )
+        {
+                state = 1;
+        }
 }
 
 unsigned long beebasm_rand()
