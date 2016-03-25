@@ -35,6 +35,7 @@
 #include "asmexception.h"
 #include "discimage.h"
 #include "BASIC.h"
+#include "random.h"
 
 
 using namespace std;
@@ -2014,7 +2015,7 @@ void LineParser::HandleRandomize()
 		}
 	}
 
-	srand( value );
+	beebasm_srand( value );
 
 	if ( m_column < m_line.length() && m_line[ m_column ] == ',' )
 	{
