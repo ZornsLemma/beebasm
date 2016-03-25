@@ -4,7 +4,7 @@
 
         Simple Lehmer random number generator; used instead of the native C library's generator 
         so RANDOMIZE+RND() gives consistent results on all platforms. The constants used are those
-        for C++11's minstd_rand0. See https://en.wikipedia.org/wiki/Lehmer_random_number_generator
+        for C++11's minstd_rand. See https://en.wikipedia.org/wiki/Lehmer_random_number_generator
 
 	Copyright (C) Rich Talbot-Watkins 2007 - 2012
         Copyright (C) Steven Flintham 2016
