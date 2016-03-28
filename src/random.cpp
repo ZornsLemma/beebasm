@@ -28,7 +28,7 @@
 
 static unsigned long state = 19670512;
 
-static unsigned long modulus = 2147483647;
+static unsigned long modulus = BEEBASM_RAND_MODULUS;
 
 void beebasm_srand(unsigned long seed)
 {
@@ -41,6 +41,9 @@ void beebasm_srand(unsigned long seed)
 
 unsigned long beebasm_rand()
 {
-        state = ( 48271 * state ) % modulus;
-        return state;
+        state = ( BEEBASM_RAND_MULTIPLIER * state ) % modulus;
+        // It's always true that 1 <= state <= (modulus - 1), so we return state - 1 to make
+        // 0 a possible value. BEEBASM_RAND_MAX is modulus - 2, so we have 0 <= return value <=
+        // BEEBASM_RAND_MAX as required for compatibility with the interface of rand().
+        return state - 1;
 }

@@ -24,6 +24,10 @@
 #ifndef RANDOM_H_
 #define RANDOM_H_
 
+#define BEEBASM_RAND_MULTIPLIER (48271UL)
+#define BEEBASM_RAND_MODULUS (2147483647UL)
+#define BEEBASM_RAND_MAX (BEEBASM_RAND_MODULUS - 2UL)
+
 void beebasm_srand(unsigned long seed);
 
 unsigned long beebasm_rand();

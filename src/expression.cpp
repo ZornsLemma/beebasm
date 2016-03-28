@@ -1307,11 +1307,11 @@ void LineParser::EvalRnd()
 	}
 	else if ( val == 1.0f )
 	{
-		result = beebasm_rand() / ( static_cast< double >( RAND_MAX ) + 1.0 );
+		result = beebasm_rand() / ( static_cast< double >( BEEBASM_RAND_MAX ) + 1.0 );
 	}
 	else
 	{
-		result = static_cast< double >( static_cast< int >( beebasm_rand() / ( static_cast< double >( RAND_MAX ) + 1.0 ) * val ) );
+		result = static_cast< double >( static_cast< int >( beebasm_rand() / ( static_cast< double >( BEEBASM_RAND_MAX ) + 1.0 ) * val ) );
 	}
 
 	m_valueStack[ m_valueStackPtr - 1 ] = result;
