@@ -4,7 +4,7 @@
 
 
 	Copyright (C) Rich Talbot-Watkins 2007 - 2012
-        Copyright (C) Steven Flintham 2016
+	Copyright (C) Steven Flintham 2016
 
 	This file is part of BeebAsm.
 
