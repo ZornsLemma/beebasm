@@ -1,0 +1,61 @@
+org &2000
+
+macro xif_eq
+	push structure, P%
+	push structure, 1
+	skipto P% + 2
+	clear P% -2 , P%
+endmacro
+
+\ SFTODO REALLY THE BNE IN THE FOLLOWING TWO MACROS SHOULD HAVE BEEN DONE IN XIF_EQ AND WE SHOULD JUST BE FILLING IN THE BRANCH OFFSET
+macro xelse
+	assert structure == 1
+	pop structure
+	current_P% = P%
+	org structure
+	bne current_P% + 3
+	org current_P%
+	pop structure
+	push structure, P%
+	push structure, 2
+	skipto P% + 3
+	clear P% - 3, P%
+endmacro
+
+macro xendif
+	s = structure
+	pop structure
+	assert s == 1 or s == 2
+	if s == 1
+		current_P% = P%
+		org structure
+		bne current_P%
+		org current_P%
+		pop structure
+	else
+		current_P% = P%
+		org structure
+		jmp current_P%
+		org current_P%
+		pop structure
+	endif
+endmacro
+
+.start
+	lda #65
+	cmp #65
+	xif_eq
+		ldx #5
+	xendif
+	lda #70
+	cmp #71
+	xif_eq
+		ldy #10
+	xelse
+		ldy #20
+	xendif
+	rts
+
+.end
+
+save "test", start, end
