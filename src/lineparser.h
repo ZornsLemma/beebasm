@@ -157,6 +157,8 @@ private:
 	void			HandleError();
 	void			HandleCopyBlock();
 	void			HandleRandomize();
+	void			HandlePush();
+	void			HandlePop();
 
 	// expression evaluating methods
 
@@ -205,6 +207,7 @@ private:
 	void			EvalLog();
 	void			EvalLn();
 	void			EvalExp();
+	void			EvalPop();
 
 
 	SourceCode*				m_sourceCode;

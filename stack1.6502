@@ -1,0 +1,15 @@
+org &2000
+
+.start
+	push foo, 42
+	push foo, 25
+	lda #foo
+	pop foo
+	lda #foo
+	lda #foo
+	pop foo
+	rts
+
+.end
+
+save "test", start, end

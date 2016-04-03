@@ -27,6 +27,7 @@
 #include <cstdlib>
 #include <map>
 #include <string>
+#include <vector>
 
 
 class SymbolTable
@@ -37,11 +38,15 @@ public:
 	static void Destroy();
 	static inline SymbolTable& Instance() { assert( m_gInstance != NULL ); return *m_gInstance; }
 
-	void AddSymbol( const std::string& symbol, double value, bool isLabel = false );
+	void AddSymbol( const std::string& symbol, double value, bool isLabel = false, bool isStack = false );
 	void ChangeSymbol( const std::string& symbol, double value );
 	double GetSymbol( const std::string& symbol ) const;
 	bool IsSymbolDefined( const std::string& symbol ) const;
 	void RemoveSymbol( const std::string& symbol );
+	bool IsStack( const std::string& symbol) const;
+	bool IsEmptyStack( const std::string& symbol) const;
+	void PushStackSymbol( const std::string& symbol, double value );
+	void PopStackSymbol( const std::string& symbol );
 
 	void Dump() const;
 
@@ -52,16 +57,23 @@ private:
 	{
 	public:
 
-		Symbol( double value, bool isLabel ) : m_value( value ), m_isLabel( isLabel ) {}
+		Symbol( double value, bool isLabel, bool isStack ) : m_value( value ), m_isLabel( isLabel ), m_isStack( isStack ) {}
 
+		// SFTODO: INVOKING SETVALUE() ON A STACK SHOULD PROBABLY BE AN ERROR
 		void SetValue( double d ) { m_value = d; }
-		double GetValue() const { return m_value; }
+		double GetValue() const;
 		bool IsLabel() const { return m_isLabel; }
+		bool IsStack() const { return m_isStack; }
+		bool IsEmptyStack() const { return m_isStack && m_stack.empty(); }
+		void PushStack( double d ) { m_stack.push_back( d ); }
+		void PopStack();
 
 	private:
 
 		double	m_value;
 		bool	m_isLabel;
+		bool	m_isStack;
+		std::vector<double> m_stack;
 	};
 
 	SymbolTable();

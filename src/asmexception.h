@@ -206,6 +206,8 @@ DEFINE_SYNTAX_EXCEPTION( EndMacroUnexpected, "ENDMACRO encountered without a mat
 DEFINE_SYNTAX_EXCEPTION( NoEndMacro, "Unterminated macro (ENDMACRO not found)." );
 DEFINE_SYNTAX_EXCEPTION( DuplicateMacroName, "Macro name already defined." );
 DEFINE_SYNTAX_EXCEPTION( AssertionFailed, "Assertion failed." );
+DEFINE_SYNTAX_EXCEPTION( ReadEmptyStack, "Atttempt to use value of empty stack." );
+DEFINE_SYNTAX_EXCEPTION( PopEmptyStack, "Attempt to pop empty stack." );
 
 // meta-language parsing exceptions
 DEFINE_SYNTAX_EXCEPTION( NextWithoutFor, "NEXT without FOR." );

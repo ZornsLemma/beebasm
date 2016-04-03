@@ -77,7 +77,9 @@ const LineParser::Token	LineParser::m_gaTokenTable[] =
 	{ "ENDMACRO",	&LineParser::HandleEndMacro,			&SourceFile::EndMacro },
 	{ "ERROR",		&LineParser::HandleError,				0 },
 	{ "COPYBLOCK",	&LineParser::HandleCopyBlock,			0 },
-	{ "RANDOMIZE",  &LineParser::HandleRandomize,			0 }
+	{ "RANDOMIZE",  &LineParser::HandleRandomize,			0 },
+	{ "PUSH",       &LineParser::HandlePush,                0 },
+	{ "POP", 		&LineParser::HandlePop,					0 }
 };
 
 
@@ -2021,5 +2023,142 @@ void LineParser::HandleRandomize()
 	{
 		// Unexpected comma (remembering that an expression can validly end with a comma)
 		throw AsmException_SyntaxError_UnexpectedComma( m_line, m_column );
+	}
+}
+
+
+/*************************************************************************************************/
+/**
+	LineParser::HandlePush()
+*/
+/*************************************************************************************************/
+void LineParser::HandlePush()
+{
+	// syntax is PUSH stack, exp, exp, ...
+
+	if ( !AdvanceAndCheckEndOfStatement() )
+	{
+		// found nothing
+		throw AsmException_SyntaxError_EmptyExpression( m_line, m_column );
+	}
+
+	// first look for the stack name
+
+	if ( !isalpha( m_line[ m_column ] ) && m_line[ m_column ] != '_' )
+	{
+		throw AsmException_SyntaxError_InvalidSymbolName( m_line, m_column );
+	}
+	// Stacks are global symbols so we don't use GetSymbolNameSuffix() here. SFTODO: OK?
+	std::string stackName = GetSymbolName();
+
+	if ( !SymbolTable::Instance().IsSymbolDefined( stackName ) )
+	{
+		SymbolTable::Instance().AddSymbol( stackName, 0, false, true );
+	}
+	// SFTODO: I NEED TO CLEAR MY STACKS AT START OF SECOND PASS
+
+	// look for first comma
+
+	if ( !AdvanceAndCheckEndOfStatement() )
+	{
+		// found nothing
+		throw AsmException_SyntaxError_EmptyExpression( m_line, m_column );
+	}
+
+	if ( m_line[ m_column ] != ',' )
+	{
+		throw AsmException_SyntaxError_InvalidCharacter( m_line, m_column );
+	}
+	m_column++;
+
+	do
+	{
+		unsigned int value;
+
+		try
+		{
+			value = EvaluateExpressionAsUnsignedInt();
+		}
+		catch ( AsmException_SyntaxError_SymbolNotDefined& )
+		{
+			// SFTODO: I NEED TO CLEAR ALL MY STACKS AT START OF SECOND PASS!
+			if ( GlobalData::Instance().IsFirstPass() )
+			{
+				value = 0;
+			}
+			else
+			{
+				throw;
+			}
+		}
+
+		SymbolTable::Instance().PushStackSymbol( stackName, value );
+
+		if ( !AdvanceAndCheckEndOfStatement() )
+		{
+			break;
+		}
+
+		if ( m_column >= m_line.length() || m_line[ m_column ] != ',' )
+		{
+			throw AsmException_SyntaxError_InvalidCharacter( m_line, m_column );
+		}
+
+		m_column++;
+
+		if ( !AdvanceAndCheckEndOfStatement() )
+		{
+			throw AsmException_SyntaxError_EmptyExpression( m_line, m_column );
+		}
+
+	} while ( true );
+}
+
+
+/*************************************************************************************************/
+/**
+	LineParser::HandlePop()
+*/
+/*************************************************************************************************/
+void LineParser::HandlePop()
+{
+	// syntax is POP stack
+
+	if ( !AdvanceAndCheckEndOfStatement() )
+	{
+		// found nothing
+		throw AsmException_SyntaxError_EmptyExpression( m_line, m_column );
+	}
+
+	// first look for the stack name
+
+	if ( !isalpha( m_line[ m_column ] ) && m_line[ m_column ] != '_' )
+	{
+		throw AsmException_SyntaxError_InvalidSymbolName( m_line, m_column );
+	}
+	// Stacks are global symbols so we don't use GetSymbolNameSuffix() here. SFTODO: OK?
+	std::string stackName = GetSymbolName();
+
+	if ( !SymbolTable::Instance().IsSymbolDefined( stackName ) )
+	{
+		assert( false ); // SFTODO THROW SOMETHING
+	}
+	
+	if ( !SymbolTable::Instance().IsStack( stackName ) )
+	{
+		assert( false ); // SFTODO: THROW SOMETHING
+	}
+
+	if ( SymbolTable::Instance().IsEmptyStack( stackName ) )
+	{
+		throw AsmException_SyntaxError_PopEmptyStack( m_line, m_column );
+	}
+
+	SymbolTable::Instance().PopStackSymbol( stackName );
+
+	if ( AdvanceAndCheckEndOfStatement() )
+	{
+		// found nothing
+		throw AsmException_SyntaxError_InvalidCharacter( m_line, m_column );
 	}
 }

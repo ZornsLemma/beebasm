@@ -216,6 +216,10 @@ double LineParser::GetValue()
 
 			if ( SymbolTable::Instance().IsSymbolDefined( fullSymbolName ) )
 			{
+				if ( SymbolTable::Instance().IsEmptyStack( fullSymbolName ) )
+				{
+					throw AsmException_SyntaxError_ReadEmptyStack( m_line, m_column );
+				}
 				value = SymbolTable::Instance().GetSymbol( fullSymbolName );
 				bFoundSymbol = true;
 				break;
