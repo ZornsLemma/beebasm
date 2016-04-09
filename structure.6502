@@ -7,6 +7,7 @@ structure_start = 0
 structure_if = 1
 structure_else = 2
 structure_begin = 3
+structure_while = 4
 
 macro branch_equb byte
 	if byte < -128 or byte > 127
@@ -174,6 +175,81 @@ macro xuntil_vs
 
 	bvc structure_addr
 	pop structure_addr
+endmacro
+
+macro xagain
+	assert structure_security == structure_begin
+	pop structure_security
+
+	jmp structure_addr
+	pop structure_addr
+endmacro
+
+macro xwhile_common
+	assert structure_security == structure_begin
+	pop structure_security
+	push structure_security, structure_while
+
+	push structure_addr, P% - 2
+	clear P% - 1, P%
+endmacro
+
+macro xwhile_eq
+	bne P%
+	xwhile_common
+endmacro
+
+macro xwhile_ne
+	beq P%
+	xwhile_common
+endmacro
+
+macro xwhile_cc
+	bcs P%
+	xwhile_common
+endmacro
+
+macro xwhile_cs
+	bcc P%
+	xwhile_common
+endmacro
+
+macro xwhile_mi
+	bpl P%
+	xwhile_common
+endmacro
+
+macro xwhile_pl
+	bmi P%
+	xwhile_common
+endmacro
+
+macro xwhile_vc
+	bvs P%
+	xwhile_common
+endmacro
+
+macro xwhile_vs
+	bvc P%
+	xwhile_common
+endmacro
+
+macro xendwhile
+	assert structure_security = structure_while
+	pop structure_security
+
+	while_branch_addr = structure_addr
+	pop structure_addr
+	begin_addr = structure_addr
+	pop structure_addr
+
+	jmp begin_addr
+
+	\ Patch up the previously-assembled branch to have a target here.
+	current_P% = P%
+	org while_branch_addr + 1 \ branch offset in 'while' branch instruction
+	branch_equb (current_P% - (P% + 1))
+	org current_P%
 endmacro
 
 macro xend
