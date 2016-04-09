@@ -1,3 +1,6 @@
+\ "Structured assembly" macros for beebasm with stack support
+\ Ideas based on http://wilsonminesco.com/StructureMacros/index.html
+
 \ Constants used to implement "compiler security", i.e. detection of mismatched
 \ control macros.
 structure_start = 0
