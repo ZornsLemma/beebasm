@@ -1,0 +1,37 @@
+org &2000
+
+include "structure.6502"
+
+xstart
+
+.start
+
+	xbegin
+		lda #65
+	xagain \ jmp back to xbegin, i.e. infinite loop
+
+	xbegin
+		ldy #0
+		lda (&70),y
+		cmp #42
+	xwhile_ne \ beq instruction-after-xendwhile
+		inc &70
+		xif_eq
+			inc &71
+		xendif
+	xendwhile \ jmp xbegin
+
+	ldy #255
+	xbegin
+		iny
+		lda (&70),y
+		cmp #42
+	xuntil_eq \ bne xbegin
+
+rts
+
+.end
+
+xend
+
+save "test", start, end
