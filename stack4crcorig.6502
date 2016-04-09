@@ -1,0 +1,40 @@
+org &2000
+
+low = &70
+high = &71
+data = &900
+lblk = 0
+
+.start
+	lda #0
+	sta high
+	sta low
+	tay
+.nbyt
+	lda high
+	eor data,y
+	sta high
+	ldx #8
+.loop
+	lda high
+	rol a
+	bcc b7z
+	lda high
+	eor #8
+	sta high
+	lda low
+	eor #&10
+	sta low
+.b7z
+	rol low
+	rol high
+	dex
+	bne loop
+	iny
+	cpy #lblk
+	bne nbyt
+	rts
+
+.end
+
+save "test", start, end

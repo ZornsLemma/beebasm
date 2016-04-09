@@ -1,0 +1,46 @@
+org &2000
+
+include "structure.6502"
+
+xstart
+
+low = &70
+high = &71
+data = &900
+lblk = 0
+
+.start
+	lda #0
+	sta high
+	sta low
+	tay
+	xbegin
+		lda high
+		eor data,y
+		sta high
+		ldx #8
+		xbegin
+			lda high
+			rol a
+			xif_cs
+				lda high
+				eor #8
+				sta high
+				lda low
+				eor #&10
+				sta low
+			xendif
+			rol low
+			rol high
+			dex
+		xuntil_eq
+		iny
+		cpy #lblk
+	xuntil_eq
+	rts
+
+.end
+
+xend
+
+save "test", start, end

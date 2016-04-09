@@ -3,6 +3,7 @@
 structure_start = 0
 structure_if = 1
 structure_else = 2
+structure_begin = 3
 
 macro branch_equb byte
 	if byte < -128 or byte > 127
@@ -101,6 +102,75 @@ macro xendif
 
 	pop structure_addr
 	pop structure_security
+endmacro
+
+macro xbegin
+	push structure_security, structure_begin
+	push structure_addr, P%
+endmacro
+
+macro xuntil_eq
+	assert structure_security == structure_begin
+	pop structure_security
+
+	bne structure_addr
+	pop structure_addr
+endmacro
+
+macro xuntil_ne
+	assert structure_security == structure_begin
+	pop structure_security
+
+	beq structure_addr
+	pop structure_addr
+endmacro
+
+macro xuntil_cc
+	assert structure_security == structure_begin
+	pop structure_security
+
+	bcs structure_addr
+	pop structure_addr
+endmacro
+
+macro xuntil_cs
+	assert structure_security == structure_begin
+	pop structure_security
+
+	bcc structure_addr
+	pop structure_addr
+endmacro
+
+macro xuntil_mi
+	assert structure_security == structure_begin
+	pop structure_security
+
+	bpl structure_addr
+	pop structure_addr
+endmacro
+
+macro xuntil_pl
+	assert structure_security == structure_begin
+	pop structure_security
+
+	bmi structure_addr
+	pop structure_addr
+endmacro
+
+macro xuntil_vc
+	assert structure_security == structure_begin
+	pop structure_security
+
+	bvs structure_addr
+	pop structure_addr
+endmacro
+
+macro xuntil_vs
+	assert structure_security == structure_begin
+	pop structure_security
+
+	bvc structure_addr
+	pop structure_addr
 endmacro
 
 macro xend
