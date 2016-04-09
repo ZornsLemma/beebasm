@@ -208,6 +208,7 @@ DEFINE_SYNTAX_EXCEPTION( DuplicateMacroName, "Macro name already defined." );
 DEFINE_SYNTAX_EXCEPTION( AssertionFailed, "Assertion failed." );
 DEFINE_SYNTAX_EXCEPTION( ReadEmptyStack, "Atttempt to use value of empty stack." );
 DEFINE_SYNTAX_EXCEPTION( PopEmptyStack, "Attempt to pop empty stack." );
+DEFINE_SYNTAX_EXCEPTION( SymbolNotStack, "Attempt to use non-stack symbol as stack." );
 
 // meta-language parsing exceptions
 DEFINE_SYNTAX_EXCEPTION( NextWithoutFor, "NEXT without FOR." );

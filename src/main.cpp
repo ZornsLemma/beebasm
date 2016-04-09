@@ -236,6 +236,7 @@ int main( int argc, char* argv[] )
 			GlobalData::Instance().SetPass( pass );
 			ObjectCode::Instance().InitialisePass();
 			GlobalData::Instance().ResetForId();
+			SymbolTable::Instance().ResetStacks();
 			beebasm_srand( static_cast< unsigned long >( randomSeed ) );
 			SourceFile input( pInputFile );
 			input.Process();

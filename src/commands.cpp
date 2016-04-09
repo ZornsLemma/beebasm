@@ -2048,14 +2048,19 @@ void LineParser::HandlePush()
 	{
 		throw AsmException_SyntaxError_InvalidSymbolName( m_line, m_column );
 	}
-	// Stacks are global symbols so we don't use GetSymbolNameSuffix() here. SFTODO: OK?
+	int name_column = m_column;
+	// stacks are global symbols so we don't use GetSymbolNameSuffix() here.
 	std::string stackName = GetSymbolName();
 
 	if ( !SymbolTable::Instance().IsSymbolDefined( stackName ) )
 	{
 		SymbolTable::Instance().AddSymbol( stackName, 0, false, true );
 	}
-	// SFTODO: I NEED TO CLEAR MY STACKS AT START OF SECOND PASS
+
+	if ( !SymbolTable::Instance().IsStack( stackName ) )
+	{
+		throw AsmException_SyntaxError_SymbolNotStack( m_line, name_column );
+	}
 
 	// look for first comma
 
@@ -2081,7 +2086,6 @@ void LineParser::HandlePush()
 		}
 		catch ( AsmException_SyntaxError_SymbolNotDefined& )
 		{
-			// SFTODO: I NEED TO CLEAR ALL MY STACKS AT START OF SECOND PASS!
 			if ( GlobalData::Instance().IsFirstPass() )
 			{
 				value = 0;
@@ -2136,17 +2140,18 @@ void LineParser::HandlePop()
 	{
 		throw AsmException_SyntaxError_InvalidSymbolName( m_line, m_column );
 	}
-	// Stacks are global symbols so we don't use GetSymbolNameSuffix() here. SFTODO: OK?
+	int name_column = m_column;
+	// stacks are global symbols so we don't use GetSymbolNameSuffix() here
 	std::string stackName = GetSymbolName();
 
 	if ( !SymbolTable::Instance().IsSymbolDefined( stackName ) )
 	{
-		assert( false ); // SFTODO THROW SOMETHING
+		throw AsmException_SyntaxError_SymbolNotDefined( m_line, name_column );
 	}
 	
 	if ( !SymbolTable::Instance().IsStack( stackName ) )
 	{
-		assert( false ); // SFTODO: THROW SOMETHING
+		throw AsmException_SyntaxError_SymbolNotStack( m_line, name_column );
 	}
 
 	if ( SymbolTable::Instance().IsEmptyStack( stackName ) )

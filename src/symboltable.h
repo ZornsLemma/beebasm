@@ -43,6 +43,7 @@ public:
 	double GetSymbol( const std::string& symbol ) const;
 	bool IsSymbolDefined( const std::string& symbol ) const;
 	void RemoveSymbol( const std::string& symbol );
+	void ResetStacks();
 	bool IsStack( const std::string& symbol) const;
 	bool IsEmptyStack( const std::string& symbol) const;
 	void PushStackSymbol( const std::string& symbol, double value );
@@ -59,14 +60,14 @@ private:
 
 		Symbol( double value, bool isLabel, bool isStack ) : m_value( value ), m_isLabel( isLabel ), m_isStack( isStack ) {}
 
-		// SFTODO: INVOKING SETVALUE() ON A STACK SHOULD PROBABLY BE AN ERROR
-		void SetValue( double d ) { m_value = d; }
+		void SetValue( double d ) { assert( !m_isStack ); m_value = d; }
 		double GetValue() const;
 		bool IsLabel() const { return m_isLabel; }
 		bool IsStack() const { return m_isStack; }
-		bool IsEmptyStack() const { return m_isStack && m_stack.empty(); }
-		void PushStack( double d ) { m_stack.push_back( d ); }
+		void PushStack( double d ) { assert( m_isStack ); m_stack.push_back( d ); }
 		void PopStack();
+		void ResetStack() { assert( m_isStack ); m_stack.clear(); }
+		bool IsEmptyStack() const { return m_isStack && m_stack.empty(); }
 
 	private:
 

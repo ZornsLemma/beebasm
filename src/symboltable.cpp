@@ -122,8 +122,9 @@ bool SymbolTable::IsSymbolDefined( const std::string& symbol ) const
 	Adds a symbol to the symbol table with the supplied value
 
 	@param		symbol			The symbol to add
-	@param		int				Its value
-	SFTODO UPDATE THIS - IT WAS OUT OF DATE ANYWAY
+	@param		value			Its value
+	@param		isLabel			Is the symbol a label?
+	@param		isStack			Is the symbol a stack?
 */
 /*************************************************************************************************/
 void SymbolTable::AddSymbol( const std::string& symbol, double value, bool isLabel, bool isStack )
@@ -184,57 +185,98 @@ void SymbolTable::RemoveSymbol( const std::string& symbol )
 	m_map.erase( symbol );
 }
 
-// SFTODO: FORMATTING, MOVE
-double SymbolTable::Symbol::GetValue() const
+
+
+/*************************************************************************************************/
+/**
+	SymbolTable::ResetStacks()
+
+	Erase the contents of all stacks
+*/
+/*************************************************************************************************/
+void SymbolTable::ResetStacks()
 {
-	if ( !m_isStack )
+	for ( map<string, Symbol>::iterator it = m_map.begin(); it != m_map.end(); ++it )
 	{
-		return m_value;
-	}
-	else
-	{
-		assert( !m_stack.empty() );
-		return m_stack.back();
+		if ( it->second.IsStack() )
+		{
+			it->second.ResetStack();
+		}
 	}
 }
 
-// SFTODO: FORMATTING
-void SymbolTable::PushStackSymbol( const std::string& symbol, double value )
-{
-	assert( IsSymbolDefined( symbol ) );
-	assert( m_map.find( symbol )->second.IsStack() ); // SFTODO: NOT SURE IF MY CALLER CORRECTLY ENFROCES THIS AGAINST USER ERROR
-	m_map.find( symbol )->second.PushStack( value );
-}
 
-// SFTODO: FORMATTING
-void SymbolTable::PopStackSymbol( const std::string& symbol )
-{
-	assert( IsSymbolDefined( symbol ) );
-	assert( m_map.find( symbol )->second.IsStack() ); // SFTODO: NOT SURE IF MY CALLER CORRECTLY ENFROCES THIS AGAINST USER ERROR
-	m_map.find( symbol )->second.PopStack();
-}
 
-// SFTODO: FORMATTING
+/*************************************************************************************************/
+/**
+	SymbolTable::IsStack()
+
+	Check to see if a symbol is a stack
+
+	@param		symbol			The symbol to search for
+*/
+/*************************************************************************************************/
 bool SymbolTable::IsStack( const std::string& symbol ) const
 {
 	assert( IsSymbolDefined( symbol ) );
 	return m_map.find( symbol )->second.IsStack();
 }
 
-// SFTODO: FORMATTING
+
+
+/*************************************************************************************************/
+/**
+	SymbolTable::IsEmptyStack()
+
+	Check to see if a symbol is a stack and is empty
+
+	@param		symbol			The symbol to search for
+	@returns	bool
+*/
+/*************************************************************************************************/
 bool SymbolTable::IsEmptyStack( const std::string& symbol ) const
 {
 	assert( IsSymbolDefined( symbol ) );
 	return m_map.find( symbol )->second.IsEmptyStack();
 }
 
-// SFTODO: MOVE/FORMATTING
-void SymbolTable::Symbol::PopStack()
+
+
+/*************************************************************************************************/
+/**
+	SymbolTable::PushStackSymbol()
+
+	Push a value onto a stack symbol
+
+	@param		symbol			The symbol to search for
+	@param		value			Value to push
+*/
+/*************************************************************************************************/
+void SymbolTable::PushStackSymbol( const std::string& symbol, double value )
 {
-	assert( m_isStack );
-	assert( !m_stack.empty() );
-	m_stack.pop_back();
+	assert( IsSymbolDefined( symbol ) );
+	assert( m_map.find( symbol )->second.IsStack() );
+	m_map.find( symbol )->second.PushStack( value );
 }
+
+
+
+/*************************************************************************************************/
+/**
+	SymbolTable::PopStackSymbol()
+
+	Pop (discard) a value from a stack symbol
+
+	@param		symbol			The symbol to search for
+*/
+/*************************************************************************************************/
+void SymbolTable::PopStackSymbol( const std::string& symbol )
+{
+	assert( IsSymbolDefined( symbol ) );
+	assert( m_map.find( symbol )->second.IsStack() );
+	m_map.find( symbol )->second.PopStack();
+}
+
 
 
 /*************************************************************************************************/
@@ -244,7 +286,6 @@ void SymbolTable::Symbol::PopStack()
 	Dumps all global symbols in the symbol table
 */
 /*************************************************************************************************/
-// SFTODO: WHAT ABOUT STACKS?
 void SymbolTable::Dump() const
 {
 	cout << "[{";
@@ -272,3 +313,44 @@ void SymbolTable::Dump() const
 
 	cout << "}]" << endl;
 }
+
+
+
+/*************************************************************************************************/
+/**
+	SymbolTable::Symbol::GetValue()
+
+	Return the value of the symbol
+
+	@returns	value
+*/
+/*************************************************************************************************/
+double SymbolTable::Symbol::GetValue() const
+{
+	if ( !m_isStack )
+	{
+		return m_value;
+	}
+	else
+	{
+		assert( !m_stack.empty() );
+		return m_stack.back();
+	}
+}
+
+
+
+/*************************************************************************************************/
+/**
+	SymbolTable::Symbol::PopStack()
+
+	Remove the top element from a stack symbol
+*/
+/*************************************************************************************************/
+void SymbolTable::Symbol::PopStack()
+{
+	assert( m_isStack );
+	assert( !m_stack.empty() );
+	m_stack.pop_back();
+}
+
