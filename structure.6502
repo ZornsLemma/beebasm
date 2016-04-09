@@ -17,7 +17,7 @@ macro branch_equb byte
 endmacro
 
 macro xstart
-	\ SFTODO: We wouldn't need this if we had a way to test for an empty stack
+	\ TODO: We wouldn't need this if we had a way to test for an empty stack in xend
 	push structure_security, structure_start
 endmacro
 
