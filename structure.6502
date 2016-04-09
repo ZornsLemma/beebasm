@@ -1,0 +1,110 @@
+\ Constants used to implement "compiler security", i.e. detection of mismatched
+\ control macros.
+structure_start = 0
+structure_if = 1
+structure_else = 2
+
+macro branch_equb byte
+	if byte < -128 or byte > 127
+		error Branch out of range
+	endif
+	equb byte
+endmacro
+
+macro xstart
+	\ SFTODO: We wouldn't need this if we had a way to test for an empty stack
+	push structure_security, structure_start
+endmacro
+
+macro xif_common
+	push structure_security, structure_if
+
+	push structure_addr, P% - 2
+	clear P% - 1, P%
+endmacro
+
+macro xif_eq
+	bne P%
+	xif_common
+endmacro
+
+macro xif_ne
+	beq P%
+	xif_common
+endmacro
+
+macro xif_cc
+	bcs P%
+	xif_common
+endmacro
+
+macro xif_cs
+	bcc P%
+	xif_common
+endmacro
+
+macro xif_mi
+	bpl P%
+	xif_common
+endmacro
+
+macro xif_pl
+	bmi P%
+	xif_common
+endmacro
+
+macro xif_vc
+	bvs P%
+	xif_common
+endmacro
+
+macro xif_vs
+	bvc P%
+	xif_common
+endmacro
+
+macro xelse
+	assert structure_security == structure_if
+	pop structure_security
+	push structure_security, structure_else
+
+	\ Patch up the previously-assembled branch to have a target immediately after
+	\ the JMP we're about to assemble
+	current_P% = P%
+	org structure_addr + 1 \ branch offset in 'if' branch instruction
+	branch_equb ((current_P% + 3) - (P% + 1))
+	pop structure_addr
+
+	\ Assemble a JMP whose target will be patched up to the corresponding xendif
+	org current_P%
+	push structure_addr, P%
+	jmp &0000
+	clear P% - 2, P%
+endmacro
+
+macro xendif
+	assert structure_security == structure_if or structure_security == structure_else
+
+	if structure_security == structure_if
+		\ Patch up the previously-assembled branch to have a target here.
+		current_P% = P%
+		org structure_addr + 1 \ branch offset in 'if' branch instruction
+		branch_equb (current_P% - (P% + 1))
+		org current_P%
+	else
+		\ Patch up the previously-assembled jmp to have a target here.
+		current_P% = P%
+		org structure_addr + 1
+		equw current_P%
+		org current_P%
+	endif
+
+	pop structure_addr
+	pop structure_security
+endmacro
+
+macro xend
+	if structure_security != structure_start
+		error Unclosed control structure(s)
+	endif
+endmacro

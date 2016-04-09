@@ -1,0 +1,26 @@
+org &2000
+
+include "structure.6502"
+
+xstart
+
+.start
+	lda #65
+	cmp #65
+	xif_eq
+		ldx #5
+	xendif
+	lda #70
+	cmp #71
+	xif_eq
+		ldy #10
+	xelse
+		ldy #20
+	xendif
+	rts
+
+.end
+
+xend
+
+save "test", start, end
