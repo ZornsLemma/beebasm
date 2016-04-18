@@ -1,0 +1,2 @@
+10PRINT "Hello"
+
