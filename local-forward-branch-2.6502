@@ -11,7 +11,7 @@ endmacro
 		lda #65
 	next
 	{
-		cmp #65:branch_if_eq target:jmp boom:.ok
+		cmp #65:branch_if_eq ok:jmp boom:.ok
 	}
 	rts
 
