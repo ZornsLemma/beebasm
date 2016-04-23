@@ -215,7 +215,10 @@ void LineParser::Process()
 					{
 						double value = EvaluateExpression();
 
-						if ( !SymbolTable::Instance().IsSymbolDefined( paramName ) )
+						// We only add the symbol if this is the second pass, because otherwise we
+						// may incorrectly use an already defined symbol in an outer scope instead
+						// of a not yet defined symbol in an inner scope.
+						if ( GlobalData::Instance().IsSecondPass() && !SymbolTable::Instance().IsSymbolDefined( paramName ) )
 						{
 							SymbolTable::Instance().AddSymbol( paramName, value );
 						}
