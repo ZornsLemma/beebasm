@@ -143,6 +143,7 @@ private:
 	void			HandleOpenBrace();
 	void			HandleCloseBrace();
 	void			HandleIf();
+	void			HandleIfDef();
 	void			HandleAlign();
 	void			HandleSkip();
 	void			HandleSkipTo();

@@ -56,6 +56,8 @@ const LineParser::Token	LineParser::m_gaTokenTable[] =
 	{ "SAVE",		&LineParser::HandleSave,				0 },
 	{ "FOR",		&LineParser::HandleFor,					0 },
 	{ "NEXT",		&LineParser::HandleNext,				0 },
+	{ "IFDEF",		&LineParser::HandleIfDef,				&SourceFile::AddIfLevel },
+	{ "ELIFDEF",	&LineParser::HandleIfDef,				&SourceFile::StartElif },
 	{ "IF",			&LineParser::HandleIf,					&SourceFile::AddIfLevel },
 	{ "ELIF",		&LineParser::HandleIf,					&SourceFile::StartElif },
 	{ "ELSE",		&LineParser::HandleDirective,			&SourceFile::StartElse },
@@ -1295,6 +1297,20 @@ void LineParser::HandleIf()
 		throw AsmException_SyntaxError_UnexpectedComma( m_line, m_column );
 	}
 }
+
+void LineParser::HandleIfDef()
+{
+   if (!LineParser::MoveToNextAtom())
+   {
+      throw AsmException_SyntaxError_EmptyExpression( m_line, m_column );
+   }
+   else
+   {
+      string symbolName = GetSymbolName();
+      bool condition = SymbolTable::Instance().IsSymbolDefined(symbolName, true);
+      m_sourceCode->SetCurrentIfCondition( condition );
+   }
+}   
 
 
 
