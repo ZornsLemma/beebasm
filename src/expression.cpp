@@ -213,7 +213,7 @@ double LineParser::GetValue()
 		{
 			string fullSymbolName = symbolName + m_sourceCode->GetSymbolNameSuffix( forLevel );
 
-			if ( SymbolTable::Instance().IsSymbolDefined( fullSymbolName ) )
+			if ( SymbolTable::Instance().IsSymbolDefined( fullSymbolName, true ) )
 			{
 				value = SymbolTable::Instance().GetSymbol( fullSymbolName );
 				bFoundSymbol = true;

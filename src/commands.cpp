@@ -150,7 +150,7 @@ void LineParser::HandleDefineLabel()
 		{
 			// only add the symbol on the first pass
 
-			if ( SymbolTable::Instance().IsSymbolDefined( fullSymbolName ) )
+			if ( SymbolTable::Instance().IsSymbolDefined( fullSymbolName, false ) )
 			{
 				throw AsmException_SyntaxError_LabelAlreadyDefined( m_line, oldColumn );
 			}
@@ -1152,7 +1152,7 @@ void LineParser::HandleFor()
 
 	// Check variable has not yet been defined
 
-	if ( SymbolTable::Instance().IsSymbolDefined( symbolName ) )
+	if ( SymbolTable::Instance().IsSymbolDefined( symbolName, false ) )
 	{
 		throw AsmException_SyntaxError_LabelAlreadyDefined( m_line, oldColumn );
 	}

@@ -22,6 +22,7 @@
 
 #include <cmath>
 #include <iostream>
+#include <sstream>
 
 #include "symboltable.h"
 
@@ -104,12 +105,25 @@ SymbolTable::~SymbolTable()
 	Returns whether or not the supplied symbol exists in the symbol table
 
 	@param		symbol			The symbol to search for
+	@param		read			true if caller is "reading" symbol value
 	@returns	bool
 */
 /*************************************************************************************************/
-bool SymbolTable::IsSymbolDefined( const std::string& symbol ) const
+bool SymbolTable::IsSymbolDefined( const std::string& symbol, bool read ) const
 {
-	return ( m_map.count( symbol ) == 1 );
+	std::map<string, Symbol>::const_iterator it = m_map.find( symbol );
+	if ( it == m_map.end() )
+	{
+		return false;
+	}
+	if ( !read && it->second.IsCommandLine() )
+	{
+		// Symbols defined on the command line don't cause redefinition errors
+		// if they are assigned to by assembler input files, so we must pretend
+		// they don't exist here.
+		return false;
+	}
+	return true;
 }
 
 
@@ -126,8 +140,74 @@ bool SymbolTable::IsSymbolDefined( const std::string& symbol ) const
 /*************************************************************************************************/
 void SymbolTable::AddSymbol( const std::string& symbol, double value, bool isLabel )
 {
-	assert( !IsSymbolDefined( symbol ) );
-	m_map.insert( make_pair( symbol, Symbol( value, isLabel ) ) );
+	assert( !IsSymbolDefined( symbol, false ) );
+	std::map<string, Symbol>::iterator it = m_map.find( symbol );
+	if ( it == m_map.end() )
+	{
+		m_map.insert( make_pair( symbol, Symbol( value, isLabel, false ) ) );
+	}
+	else
+	{
+		// The first time a symbol assigned on the command line is re-assigned by assembler source,
+		// the assignment is just ignored so the command line definition takes precedence. The
+		// command line flag on the symbol is then removed so that multiple definitions within the
+		// assembler source are treated as an error.
+		it->second.RemoveCommandLineFlag();
+	}
+}
+
+
+
+
+/*************************************************************************************************/
+/**
+	SymbolTable::AddCommandLineSymbol()
+
+	Adds a symbol to the symbol table using a command line 'FOO=BAR' expression
+
+	@param		expr			Symbol name and value
+	@returns	bool
+*/
+/*************************************************************************************************/
+bool SymbolTable::AddCommandLineSymbol( const std::string& expr )
+{
+	std::string::size_type equalsIndex = expr.find( '=' );
+	if ( equalsIndex == std::string::npos )
+	{
+		return false;
+	}
+
+	std::string symbol = expr.substr( 0, equalsIndex );
+	if ( symbol.empty() )
+	{
+		return false;
+	}
+	for ( std::string::size_type i = 0; i < symbol.length(); ++i )
+	{
+		bool valid = ( isalpha( symbol[ i ] ) || ( symbol[ i ] == '_' ) );
+		valid = valid || ( ( i > 0 ) && isdigit( symbol[ i ] ) );
+		if ( !valid )
+		{
+			return false;
+		}
+	}
+	if ( IsSymbolDefined( symbol, true ) )
+	{
+		return false;
+	}
+
+	std::string valueString = expr.substr( equalsIndex + 1 );
+	std::istringstream valueStream( valueString );
+	double value;
+	char c;
+	if ( ! ( valueStream >> value ) || valueStream.get( c ) )
+	{
+		return false;
+	}
+
+	m_map.insert( make_pair( symbol, Symbol( value, false, true ) ) );
+
+	return true;
 }
 
 
@@ -143,7 +223,7 @@ void SymbolTable::AddSymbol( const std::string& symbol, double value, bool isLab
 /*************************************************************************************************/
 double SymbolTable::GetSymbol( const std::string& symbol ) const
 {
-	assert( IsSymbolDefined( symbol ) );
+	assert( IsSymbolDefined( symbol, true ) );
 	return m_map.find( symbol )->second.GetValue();
 }
 
@@ -161,7 +241,7 @@ double SymbolTable::GetSymbol( const std::string& symbol ) const
 /*************************************************************************************************/
 void SymbolTable::ChangeSymbol( const std::string& symbol, double value )
 {
-	assert( IsSymbolDefined( symbol ) );
+	assert( IsSymbolDefined( symbol, false ) );
 	m_map.find( symbol )->second.SetValue( value );
 }
 
@@ -178,7 +258,7 @@ void SymbolTable::ChangeSymbol( const std::string& symbol, double value )
 /*************************************************************************************************/
 void SymbolTable::RemoveSymbol( const std::string& symbol )
 {
-	assert( IsSymbolDefined( symbol ) );
+	assert( IsSymbolDefined( symbol, false ) );
 	m_map.erase( symbol );
 }
 

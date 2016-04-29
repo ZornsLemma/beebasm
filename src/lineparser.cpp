@@ -173,7 +173,7 @@ void LineParser::Process()
 			{
 				// only add the symbol on the first pass
 
-				if ( SymbolTable::Instance().IsSymbolDefined( symbolName ) )
+				if ( SymbolTable::Instance().IsSymbolDefined( symbolName, false ) )
 				{
 					throw AsmException_SyntaxError_LabelAlreadyDefined( m_line, oldColumn );
 				}
@@ -215,7 +215,7 @@ void LineParser::Process()
 					{
 						double value = EvaluateExpression();
 
-						if ( !SymbolTable::Instance().IsSymbolDefined( paramName ) )
+						if ( !SymbolTable::Instance().IsSymbolDefined( paramName, false ) )
 						{
 							SymbolTable::Instance().AddSymbol( paramName, value );
 						}

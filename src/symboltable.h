@@ -38,9 +38,10 @@ public:
 	static inline SymbolTable& Instance() { assert( m_gInstance != NULL ); return *m_gInstance; }
 
 	void AddSymbol( const std::string& symbol, double value, bool isLabel = false );
+    bool AddCommandLineSymbol( const std::string& expr );
 	void ChangeSymbol( const std::string& symbol, double value );
 	double GetSymbol( const std::string& symbol ) const;
-	bool IsSymbolDefined( const std::string& symbol ) const;
+	bool IsSymbolDefined( const std::string& symbol, bool read ) const;
 	void RemoveSymbol( const std::string& symbol );
 
 	void Dump() const;
@@ -52,16 +53,19 @@ private:
 	{
 	public:
 
-		Symbol( double value, bool isLabel ) : m_value( value ), m_isLabel( isLabel ) {}
+		Symbol( double value, bool isLabel, bool isCommandLine ) : m_value( value ), m_isLabel( isLabel ), m_isCommandLine( isCommandLine ) {}
 
 		void SetValue( double d ) { m_value = d; }
 		double GetValue() const { return m_value; }
 		bool IsLabel() const { return m_isLabel; }
+        bool IsCommandLine() const { return m_isCommandLine; }
+		void RemoveCommandLineFlag() { m_isCommandLine = false; }
 
 	private:
 
 		double	m_value;
 		bool	m_isLabel;
+        bool	m_isCommandLine;
 	};
 
 	SymbolTable();
