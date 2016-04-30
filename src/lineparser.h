@@ -144,6 +144,7 @@ private:
 	void			HandleCloseBrace();
 	void			HandleIf();
 	void			HandleIfDef();
+	void			HandleIfNdef();
 	void			HandleAlign();
 	void			HandleSkip();
 	void			HandleSkipTo();

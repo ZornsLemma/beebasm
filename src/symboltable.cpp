@@ -172,16 +172,22 @@ void SymbolTable::AddSymbol( const std::string& symbol, double value, bool isLab
 bool SymbolTable::AddCommandLineSymbol( const std::string& expr )
 {
 	std::string::size_type equalsIndex = expr.find( '=' );
+    std::string symbol;
+    std::string valueString;
 	if ( equalsIndex == std::string::npos )
 	{
-		return false;
+		symbol = expr;
+		valueString = "1";
 	}
-
-	std::string symbol = expr.substr( 0, equalsIndex );
-	if ( symbol.empty() )
-	{
-		return false;
-	}
+    else
+    {
+		symbol = expr.substr( 0, equalsIndex );
+		valueString = expr.substr( equalsIndex + 1 );
+    }
+    if ( symbol.empty() )
+    {
+        return false;
+    }
 	for ( std::string::size_type i = 0; i < symbol.length(); ++i )
 	{
 		bool valid = ( isalpha( symbol[ i ] ) || ( symbol[ i ] == '_' ) );
@@ -196,7 +202,6 @@ bool SymbolTable::AddCommandLineSymbol( const std::string& expr )
 		return false;
 	}
 
-	std::string valueString = expr.substr( equalsIndex + 1 );
 	std::istringstream valueStream( valueString );
 	double value;
 	char c;
