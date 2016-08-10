@@ -25,6 +25,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstring>
+#include <sstream>
 
 #include "lineparser.h"
 #include "globaldata.h"
@@ -116,6 +117,265 @@ const LineParser::OpcodeData	LineParser::m_gaOpcodeTable[] =
 
 #undef X
 
+const int LineParser::m_gaCycleTable[] =
+{
+	 7, // 0x00 BRK
+	 6, // 0x01 ORA (zp,X)
+	 0, // 0x02
+	 0, // 0x03
+	 5, // 0x04 TSB zp
+	 2, // 0x05 ORA zp
+	 5, // 0x06 ASL zp
+	 0, // 0x07
+	 3, // 0x08 PHP
+     2, // 0x09 ORA #imm
+     2, // 0x0A ASL A
+     0, // 0x0B
+     6, // 0x0C TSB abs
+     4, // 0x0D ORA abs
+     6, // 0x0E ASL abs
+     0, // 0x0F
+     0, // 0x10 BPL rel
+    -5, // 0x11 ORA (zp),Y
+     5, // 0x12 ORA (zp)
+     0, // 0x13
+     5, // 0x14 TRB zp
+     4, // 0x15 ORA zp,X
+     6, // 0x16 ASL zp,X
+     0, // 0x17
+     2, // 0x18 CLC
+    -4, // 0x19 ORA abs,Y
+     2, // 0x1A INC A
+     0, // 0x1B
+     6, // 0x1C TRB abs
+    -4, // 0x1D ORA abs,X
+     7, // 0x1E ASL abs,X
+     0, // 0x1F
+     6, // 0x20 JSR abs
+     6, // 0x21 AND (zp,X)
+     0, // 0x22
+     0, // 0x23
+     3, // 0x24 BIT zp
+     3, // 0x25 AND zp
+     5, // 0x26 ROL zp
+     0, // 0x27
+     4, // 0x28 PLP
+     2, // 0x29 AND #imm
+     2, // 0x2A ROL A
+     0, // 0x2B
+     4, // 0x2C BIT abs
+     4, // 0x2D AND abs
+     6, // 0x2E ROL abs
+     0, // 0x2F
+     0, // 0x30 BMI rel
+    -5, // 0x31 AND (zp),Y
+     5, // 0x32 AND (zp)
+     0, // 0x33
+     4, // 0x34 BIT zp,X
+     4, // 0x35 AND zp,X
+     6, // 0x36 ROL zp,X
+     0, // 0x37
+     2, // 0x38 SEC
+    -4, // 0x39 AND abs,Y
+     2, // 0x3A DEC A
+     0, // 0x3B
+    -4, // 0x3C BIT abs,X
+    -4, // 0x3D AND abs,X
+     7, // 0x3E ROL abs,X
+     0, // 0x3F
+     6, // 0x40 RTI
+     6, // 0x41 EOR (zp,X)
+     0, // 0x42
+     0, // 0x43
+     0, // 0x44
+     3, // 0x45 EOR zp
+     5, // 0x46 LSR zp
+     0, // 0x47
+     3, // 0x48 PHA
+     2, // 0x49 EOR imm
+     2, // 0x4A LSR A
+     0, // 0x4B
+     3, // 0x4C JMP abs
+     4, // 0x4D EOR abs
+     6, // 0x4E LSE abs
+     0, // 0x4F
+     0, // 0x50 BVC rel
+    -5, // 0x51 EOR (zp),Y
+     5, // 0x52 EOR (zp)
+     0, // 0x53
+     0, // 0x54
+     4, // 0x55 EOR zp,X
+     6, // 0x56 LSR zp,X
+     0, // 0x57
+     2, // 0x58 CLI
+    -4, // 0x59 EOR abs,Y
+     3, // 0x5A PHY
+     0, // 0x5B
+     0, // 0x5C
+    -4, // 0x5D EOR abs,X
+     7, // 0x5E LSR abs,X
+     0, // 0x5F
+     6, // 0x60 RTS
+     6, // 0x61 ADC (zp,X)
+     0, // 0x62
+     0, // 0x63
+     3, // 0x64 STZ zp
+     3, // 0x65 ADC zp
+     5, // 0x66 ROR zp
+     0, // 0x67
+     4, // 0x68 PLA
+     2, // 0x69 ADC #imm
+     2, // 0x6A ROR A
+     0, // 0x6B
+     5, // 0x6C JMP (abs)
+     4, // 0x6D ADC abs
+     6, // 0x6E ROR abs
+     0, // 0x6F
+     0, // 0x70 BVS rel
+    -5, // 0x71 ADC (zp),Y
+    -5, // 0x72 ADC (zp)
+     0, // 0x73
+     4, // 0x74 STZ zp,X
+     4, // 0x75 ADC zp,X
+     6, // 0x76 ROR zp,X
+     0, // 0x77
+     2, // 0x78 SEI
+    -4, // 0x79 ADC abs,Y
+     4, // 0x7A PLY
+     0, // 0x7B
+     6, // 0x7C JMP (abs,X)
+    -4, // 0x7D ADC abs,X
+     7, // 0x7E ROR abs,X
+     0, // 0x7F
+     0, // 0x80 BRA rel
+     6, // 0x81 STA (zp,X)
+     0, // 0x82
+     0, // 0x83
+     3, // 0x84 STY zp
+     3, // 0x85 STA zp
+     3, // 0x86 STX zp
+     0, // 0x87
+     2, // 0x88 DEY
+     2, // 0x89 BIT #imm
+     2, // 0x8A TXA
+     0, // 0x8B
+     4, // 0x8C STY abs
+     4, // 0x8D STA abs
+     4, // 0x8E STX abs
+     0, // 0x8F
+     0, // 0x90 BCC rel
+     6, // 0x91 STA (zp),Y
+     5, // 0x92 STA (zp)
+     0, // 0x93
+     4, // 0x94 STY zp,X
+     4, // 0x95 STA zp,X
+     4, // 0x96 STX zp,Y
+     0, // 0x97
+     2, // 0x98 TYA
+     5, // 0x99 STA abs,Y
+     2, // 0x9A TXS
+     0, // 0x9B
+     4, // 0x9C STZ abs
+     5, // 0x9D STA abs,X
+     5, // 0x9E STZ abs,X
+     0, // 0x9F
+     2, // 0xA0 LDY #imm
+     6, // 0xA1 LDA (zp,X)
+     2, // 0xA2 LDX #imm
+     0, // 0xA3
+     3, // 0xA4 LDY zp
+     3, // 0xA5 LDA zp
+     3, // 0xA6 LDX zp
+     0, // 0xA7
+     2, // 0xA8 TAY
+     2, // 0xA9 LDA #imm
+     2, // 0xAA TAX
+     0, // 0xAB
+     4, // 0xAC LDY abs
+     4, // 0xAD LDA abs
+     4, // 0xAE LDX abs
+     0, // 0xAF
+     0, // 0xB0 BCS rel
+    -5, // 0xB1 LDA (zp),Y
+     5, // 0xB2 LDA (zp)
+     0, // 0xB3
+     4, // 0xB4 LDY zp,X
+     4, // 0xB5 LDA zp,X
+     4, // 0xB6 LDX zp,Y
+     0, // 0xB7
+     2, // 0xB8 CLV
+    -4, // 0xB9 LDA abs,Y
+     2, // 0xBA TSX
+     0, // 0xBB
+    -4, // 0xBC LDY abs,X
+    -4, // 0xBD LDA abs,X
+    -4, // 0xBE LDX abs,Y
+     0, // 0xBF
+     2, // 0xC0 CPY #imm
+     6, // 0xC1 CMP (zp,X)
+     0, // 0xC2
+     0, // 0xC3
+     3, // 0xC4 CPY zp
+     3, // 0xC5 CMP zp
+     5, // 0xC6 DEC zp
+     0, // 0xC7
+     2, // 0xC8 INY
+     2, // 0xC9 CMP #imm
+     2, // 0xCA DEX
+     0, // 0xCB
+     4, // 0xCC CPY abs
+     4, // 0xCD CMP abs
+     6, // 0xCE DEC abs
+     0, // 0xCF
+     0, // 0xD0 BNE rel
+    -5, // 0xD1 CMP (zp),Y
+     5, // 0xD2 CMP (zp)
+     0, // 0xD3
+     0, // 0xD4
+     4, // 0xD5 CMP zp,X
+     6, // 0xD6 DEC zp,X
+     0, // 0xD7
+     2, // 0xD8 CLD
+    -4, // 0xD9 CMP abs,Y
+     3, // 0xDA PHX
+     0, // 0xDB
+     0, // 0xDC
+    -4, // 0xDD CMP abs,X
+     7, // 0xDE DEC abs,X
+     0, // 0xDF
+     2, // 0xE0 CPX #imm
+     6, // 0xE1 SBC (zp,X)
+     0, // 0xE2
+     0, // 0xE3
+     3, // 0xE4 CPX zp
+     3, // 0xE5 SBC zp
+     5, // 0xE6 INC zp
+     0, // 0xE7
+     12, // 0xE8 INX
+     2, // 0xE9 SBC #imm
+     2, // 0xEA NOP
+     0, // 0xEB
+     4, // 0xEC CPX abs
+     4, // 0xED SBC abs
+     6, // 0xEE INC abs
+     0, // 0xEF
+     0, // 0xF0 BEQ rel
+    -5, // 0xF1 SBC (zp),Y
+    -5, // 0xF2 SBC (zp)
+     0, // 0xF3
+     0, // 0xF4
+     4, // 0xF5 SBC zp,X
+     6, // 0xF6 INC zp,X
+     0, // 0xF7
+     2, // 0xF8 SED
+    -4, // 0xF9 SBC abs,Y
+     4, // 0xFA PLX
+     0, // 0xFB
+     0, // 0xFC
+    -4, // 0xFD SBC abs,X
+     7, // 0xFE INC abs,X
+     0  // 0xFF
+};
 
 /*************************************************************************************************/
 /**
@@ -197,6 +457,42 @@ unsigned int LineParser::GetOpcode( int instructionIndex, ADDRESSING_MODE mode )
 
 /*************************************************************************************************/
 /**
+	LineParser::GetCycles()
+*/
+/*************************************************************************************************/
+std::string LineParser::GetCycles( int opcode, unsigned int value )
+{
+	assert( ( sizeof( m_gaCycleTable ) / sizeof( m_gaCycleTable[0] ) ) == 256 );
+
+	ostringstream s;
+	int i = m_gaCycleTable[ opcode ];
+	assert( i != 0 );
+	if ( i < 0 )
+	{
+		// -4 in the cycle table indicates an abs,X or abs,Y addressing mode which takes 4 cycles
+		// or 5 if a page boundary is crossed. If the base address is on a page boundary, we know
+		// the page boundary crossing case can't occur.
+		if ( ( i == -4 ) && ( ( value & 0xFF ) == 0 ) )
+		{
+			s << 4;
+		}
+		else
+		{
+			i = abs( i );
+			s << i << "/" << ( i + 1 );
+		}
+	}
+	else
+	{
+		s << i;
+	}
+	return s.str();
+}
+
+
+
+/*************************************************************************************************/
+/**
 	LineParser::Assemble1()
 */
 /*************************************************************************************************/
@@ -215,6 +511,8 @@ void LineParser::Assemble1( int instructionIndex, ADDRESSING_MODE mode )
 		{
 			cout << " A";
 		}
+
+		cout << " [" << GetCycles( GetOpcode( instructionIndex, mode ), 0 ) << "]";
 
 		cout << endl << nouppercase << dec << setfill( ' ' );
 	}
@@ -290,6 +588,18 @@ void LineParser::Assemble2( int instructionIndex, ADDRESSING_MODE mode, unsigned
 			cout << "),Y";
 		}
 
+		if ( mode == REL )
+		{
+			int pc = ObjectCode::Instance().GetPC();
+			int dest = pc + 2 + static_cast< signed char >( value );
+			int taken_cycles = (((dest & 0xFF00) == ((pc + 2) & 0xFF00))) ? 3 : 4;
+			cout << " [2/" << taken_cycles << "]";
+		}
+		else
+		{
+			cout << " [" << GetCycles( GetOpcode( instructionIndex, mode ), 0 ) << "]";
+		}
+
 		cout << endl << nouppercase << dec << setfill( ' ' );
 	}
 
@@ -349,6 +659,8 @@ void LineParser::Assemble3( int instructionIndex, ADDRESSING_MODE mode, unsigned
 		{
 			cout << ",X)";
 		}
+
+		cout << " [" << GetCycles( GetOpcode( instructionIndex, mode ), value ) << "]";
 
 		cout << endl << nouppercase << dec << setfill( ' ' );
 	}

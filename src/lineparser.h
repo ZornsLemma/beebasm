@@ -119,6 +119,7 @@ private:
 	void			HandleAssembler( int tokenNumber );
 	bool			HasAddressingMode( int opcodeIndex, ADDRESSING_MODE mode );
 	unsigned int	GetOpcode( int opcodeIndex, ADDRESSING_MODE mode );
+	std::string		GetCycles( int opcode, unsigned int value );
 	void			Assemble1( int instructionIndex, ADDRESSING_MODE mode );
 	void			Assemble2( int instructionIndex, ADDRESSING_MODE mode, unsigned int value );
 	void			Assemble3( int instructionIndex, ADDRESSING_MODE mode, unsigned int value );
@@ -213,6 +214,7 @@ private:
 
 	static const Token		m_gaTokenTable[];
 	static const OpcodeData	m_gaOpcodeTable[];
+	static const int 		m_gaCycleTable[];
 	static const Operator	m_gaUnaryOperatorTable[];
 	static const Operator	m_gaBinaryOperatorTable[];
 
