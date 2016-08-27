@@ -21,6 +21,7 @@
 /*************************************************************************************************/
 
 #include "globaldata.h"
+#include <iostream>
 
 GlobalData* GlobalData::m_gInstance = NULL;
 
@@ -74,8 +75,16 @@ GlobalData::GlobalData()
 		m_bSaved( false ),
 		m_pOutputFile( NULL ),
 		m_numAnonSaves( 0 ),
-		m_discOption( 0 )
+		m_discOption( 0 ),
+		m_assembly_time( time( NULL ) )
 {
+	// We populate m_assembly_time with a time on startup so that all uses of TIME$ during 
+	// assembly refer to the exact same time, however long we spend assembling.
+	if ( m_assembly_time == static_cast< time_t >( -1 ) )
+	{
+		std::cerr << "Unable to determine current time" << std::endl;
+		exit( EXIT_FAILURE );
+	}
 }
 
 
