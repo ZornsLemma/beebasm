@@ -1182,7 +1182,7 @@ void LineParser::HandleSave()
 			}
 		}
 
-		if ( exec < 0 || exec > 0xFFFF )
+		if ( exec < 0 || exec > 0xFFFFFF )
 		{
 			throw AsmException_SyntaxError_OutOfRange( m_line, m_column );
 		}
@@ -1195,7 +1195,7 @@ void LineParser::HandleSave()
 
 			reload = EvaluateExpressionAsInt();
 
-			if ( reload < 0 || reload > 0xFFFF )
+			if ( reload < 0 || reload > 0xFFFFFF )
 			{
 				throw AsmException_SyntaxError_OutOfRange( m_line, m_column );
 			}
@@ -1667,7 +1667,7 @@ void LineParser::HandlePutFile()
 
 	exec = start;
 
-	if ( start < 0 || start > 0xFFFF )
+	if ( start < 0 || start > 0xFFFFFF )
 	{
 		throw AsmException_SyntaxError_OutOfRange( m_line, m_column );
 	}
@@ -1688,7 +1688,7 @@ void LineParser::HandlePutFile()
 			}
 		}
 
-		if ( exec < 0 || exec > 0xFFFF )
+		if ( exec < 0 || exec > 0xFFFFFF )
 		{
 			throw AsmException_SyntaxError_OutOfRange( m_line, m_column );
 		}
