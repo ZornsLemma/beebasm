@@ -217,7 +217,18 @@ void LineParser::Process()
 
 						if ( !SymbolTable::Instance().IsSymbolDefined( paramName ) )
 						{
-							SymbolTable::Instance().AddSymbol( paramName, value );
+							// If value is an 8-bit value, we define the symbol immediately so
+							// that the macro body can be assembled using zp addressing mode where
+							// appropriate. Otherwise, we only define the symbol if this is the second
+							// pass to prevent it incorrectly resolving to an already defined symbol in
+							// an outer scope instead of a not yet defined symbol in an inner scope.
+							// See local-forward-branch-2.6502 for an example of the latter, and
+							// local-forward-branch-3.6502 for an example of why we need to
+							// special-case 8-bit values.
+							if ( ( value >= 0 && value < 0x100 ) || GlobalData::Instance().IsSecondPass() )
+							{
+								SymbolTable::Instance().AddSymbol( paramName, value );
+							}
 						}
 
 					}

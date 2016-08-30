@@ -702,7 +702,7 @@ void LineParser::HandleAssembler( int instruction )
 		// because it's intended as a forward reference to a local label but
 		// there's an earlier definition in an outer scope - value would evaluate
 		// successfully to use the wrong label, and we might get a spurious branch
-		// out of range error. See local-forward-branch.6502 for an example.
+		// out of range error. See local-forward-branch-1.6502 for an example.
 		if ( HasAddressingMode( instruction, REL ) && GlobalData::Instance().IsFirstPass() )
 		{
 			value = ObjectCode::Instance().GetPC();
