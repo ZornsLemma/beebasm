@@ -219,7 +219,10 @@ void LineParser::Process()
 						{
 							SymbolTable::Instance().AddSymbol( paramName, value );
 						}
-
+						else if ( GlobalData::Instance().IsSecondPass() )
+						{
+							SymbolTable::Instance().ChangeSymbol( paramName, value );
+						}
 					}
 					catch ( AsmException_SyntaxError_SymbolNotDefined& )
 					{

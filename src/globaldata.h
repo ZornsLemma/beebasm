@@ -25,6 +25,7 @@
 
 #include <cassert>
 #include <cstdlib>
+#include <ctime>
 
 
 class DiscImage;
@@ -60,6 +61,7 @@ public:
 	inline const char* GetOutputFile() const	{ return m_pOutputFile; }
 	inline int GetNumAnonSaves() const			{ return m_numAnonSaves; }
 	inline int GetDiscOption() const			{ return m_discOption; }
+	inline time_t GetAssemblyTime() const		{ return m_assembly_time; }
 
 private:
 
@@ -78,6 +80,7 @@ private:
 	const char*					m_pOutputFile;
 	int							m_numAnonSaves;
 	int							m_discOption;
+	time_t						m_assembly_time;
 };
 
 
