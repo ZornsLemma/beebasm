@@ -1,0 +1,25 @@
+org &2000
+
+macro bar x
+	equw x
+endmacro
+
+macro foo x
+	bar x-1
+endmacro
+
+.start
+	
+	lda #65
+.baz
+
+	foo start
+	foo baz
+
+	ldx #42
+
+	foo end
+
+.end
+
+save "test", start, end
