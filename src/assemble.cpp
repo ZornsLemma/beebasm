@@ -155,6 +155,22 @@ int LineParser::GetInstructionAndAdvanceColumn()
 			}
 		}
 
+		// The token matches so far, but check there's nothing after it; this prevents false
+		// matches where a macro name begins with an opcode name.
+		if ( bMatch )
+		{
+			std::string::size_type k = m_column + len;
+			if ( k < m_line.length() )
+			{
+				const std::string terminators = "#(:;\\";
+				if ( !isspace( static_cast< unsigned char >( m_line[ k ] ) ) &&
+					 terminators.find( m_line[ k ] ) == std::string::npos)
+				{
+					bMatch = false;
+				}
+			}
+		}
+
 		if ( bMatch )
 		{
 			m_column += len;
