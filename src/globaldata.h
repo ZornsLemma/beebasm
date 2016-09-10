@@ -26,6 +26,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
+#include <string>
 
 
 class DiscImage;
@@ -48,6 +49,8 @@ public:
 	inline void SetOutputFile( const char* p )	{ m_pOutputFile = p; }
 	inline void IncNumAnonSaves()				{ m_numAnonSaves++; }
 	inline void SetDiscOption( int opt )		{ m_discOption = opt; }
+	inline void SetDiscTitle( const std::string& t )  
+												{ m_discTitle = t; }
 	inline void SetRequireDistinctOpcodes ( bool b )
 												{ m_bRequireDistinctOpcodes = b; }
 	inline void SetUseVisualCppErrorFormat( bool b )
@@ -65,6 +68,8 @@ public:
 	inline const char* GetOutputFile() const	{ return m_pOutputFile; }
 	inline int GetNumAnonSaves() const			{ return m_numAnonSaves; }
 	inline int GetDiscOption() const			{ return m_discOption; }
+	inline const std::string& GetDiscTitle() const
+												{ return m_discTitle; }
 	inline time_t GetAssemblyTime() const		{ return m_assembly_time; }
 	inline bool RequireDistinctOpcodes() const  { return m_bRequireDistinctOpcodes; }
 	inline bool UseVisualCppErrorFormat() const { return m_bUseVisualCppErrorFormat; }
@@ -86,6 +91,7 @@ private:
 	const char*					m_pOutputFile;
 	int							m_numAnonSaves;
 	int							m_discOption;
+	std::string					m_discTitle;
 	time_t						m_assembly_time;
 	bool						m_bRequireDistinctOpcodes;
 	bool						m_bUseVisualCppErrorFormat;
