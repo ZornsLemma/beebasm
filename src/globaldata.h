@@ -26,6 +26,7 @@
 #include <cassert>
 #include <cstdlib>
 #include <ctime>
+#include <string>
 
 
 class DiscImage;
@@ -48,6 +49,8 @@ public:
 	inline void SetOutputFile( const char* p )	{ m_pOutputFile = p; }
 	inline void IncNumAnonSaves()				{ m_numAnonSaves++; }
 	inline void SetDiscOption( int opt )		{ m_discOption = opt; }
+	inline void SetDiscTitle( const std::string& t )  
+												{ m_discTitle = t; }
 
 	inline int GetPass() const					{ return m_pass; }
 	inline bool IsFirstPass() const				{ return ( m_pass == 0 ); }
@@ -61,6 +64,8 @@ public:
 	inline const char* GetOutputFile() const	{ return m_pOutputFile; }
 	inline int GetNumAnonSaves() const			{ return m_numAnonSaves; }
 	inline int GetDiscOption() const			{ return m_discOption; }
+	inline const std::string& GetDiscTitle() const
+												{ return m_discTitle; }
 	inline time_t GetAssemblyTime() const		{ return m_assembly_time; }
 
 private:
@@ -80,6 +85,7 @@ private:
 	const char*					m_pOutputFile;
 	int							m_numAnonSaves;
 	int							m_discOption;
+	std::string					m_discTitle;
 	time_t						m_assembly_time;
 };
 
