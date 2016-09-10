@@ -155,16 +155,15 @@ int LineParser::GetInstructionAndAdvanceColumn()
 			}
 		}
 
-		// The token matches so far, but check there's nothing after it; this prevents false
-		// matches where a macro name begins with an opcode name.
-		if ( bMatch )
+		// The token matches so far, but (optionally) check there's nothing after it; this prevents 
+		// false matches where a macro name begins with an opcode, at the cost of disallowing 
+		// things like "foo=&70:stafoo".
+		if ( GlobalData::Instance().RequireDistinctOpcodes() && bMatch )
 		{
 			std::string::size_type k = m_column + len;
 			if ( k < m_line.length() )
 			{
-				const std::string terminators = "#(:;\\";
-				if ( !isspace( static_cast< unsigned char >( m_line[ k ] ) ) &&
-					 terminators.find( m_line[ k ] ) == std::string::npos)
+				if ( isalpha( m_line[ k ] ) || m_line[ k ] == '_' )
 				{
 					bMatch = false;
 				}
