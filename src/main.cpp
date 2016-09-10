@@ -115,6 +115,10 @@ int main( int argc, char* argv[] )
 				{
 					GlobalData::Instance().SetRequireDistinctOpcodes( true );
 				}
+				else if ( strcmp( argv[i], "-vc" ) == 0 )
+				{
+					GlobalData::Instance().SetUseVisualCppErrorFormat( true );
+				}
 				else if ( strcmp( argv[i], "-v" ) == 0 )
 				{
 					GlobalData::Instance().SetVerbose( true );
@@ -134,6 +138,7 @@ int main( int argc, char* argv[] )
 					cout << " -boot <file>   Specify a filename to be run by !BOOT on a new disc image" << endl;
 					cout << " -opt <opt>     Specify the *OPT 4,n for the generated disc image" << endl;
 					cout << " -w             Require whitespace between opcodes and labels" << endl;
+					cout << " -vc            Use Visual C++-style error messages" << endl;
 					cout << " -v             Verbose output" << endl;
 					cout << " -d             Dump all global symbols after assembly" << endl;
 					cout << " --help         See this help again" << endl;

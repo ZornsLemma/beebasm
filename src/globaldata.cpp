@@ -77,7 +77,8 @@ GlobalData::GlobalData()
 		m_numAnonSaves( 0 ),
 		m_discOption( 0 ),
 		m_assembly_time( time( NULL ) ),
-		m_bRequireDistinctOpcodes( false )
+		m_bRequireDistinctOpcodes( false ),
+		m_bUseVisualCppErrorFormat( false )
 {
 	// We populate m_assembly_time with a time on startup so that all uses of TIME$ during 
 	// assembly refer to the exact same time, however long we spend assembling.

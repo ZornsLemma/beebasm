@@ -50,6 +50,8 @@ public:
 	inline void SetDiscOption( int opt )		{ m_discOption = opt; }
 	inline void SetRequireDistinctOpcodes ( bool b )
 												{ m_bRequireDistinctOpcodes = b; }
+	inline void SetUseVisualCppErrorFormat( bool b )
+												{ m_bUseVisualCppErrorFormat = b; }
 
 	inline int GetPass() const					{ return m_pass; }
 	inline bool IsFirstPass() const				{ return ( m_pass == 0 ); }
@@ -65,6 +67,7 @@ public:
 	inline int GetDiscOption() const			{ return m_discOption; }
 	inline time_t GetAssemblyTime() const		{ return m_assembly_time; }
 	inline bool RequireDistinctOpcodes() const  { return m_bRequireDistinctOpcodes; }
+	inline bool UseVisualCppErrorFormat() const { return m_bUseVisualCppErrorFormat; }
 
 private:
 
@@ -85,6 +88,7 @@ private:
 	int							m_discOption;
 	time_t						m_assembly_time;
 	bool						m_bRequireDistinctOpcodes;
+	bool						m_bUseVisualCppErrorFormat;
 };
 
 
