@@ -262,6 +262,7 @@ int main( int argc, char* argv[] )
 			SourceFile input( pInputFile );
 			input.Process();
 		}
+		pDiscIm->Save();
 	}
 	catch ( AsmException& e )
 	{

@@ -24,6 +24,7 @@
 #define DISCIMAGE_H_
 
 #include <fstream>
+#include <vector>
 
 
 class DiscImage
@@ -35,15 +36,15 @@ public:
 
 	void AddFile( const char* pName, const unsigned char* pAddr, int load, int exec, int len );
 
+	void Save();
 
 private:
+	void Write( const char* pAddr, int len );
 
-	std::ofstream				m_outputFile;
-	std::ifstream				m_inputFile;
 	const char*					m_outputFilename;
 	const char*					m_inputFilename;
-	unsigned char				m_aCatalog[ 0x200 ];
-
+	std::vector<unsigned char>  m_aDiscImage;
+	std::vector<unsigned char>::size_type m_discImagePtr;
 };
 
 

@@ -22,6 +22,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include "discimage.h"
 #include "asmexception.h"
 #include "globaldata.h"
@@ -38,29 +39,25 @@ using namespace std;
 /*************************************************************************************************/
 DiscImage::DiscImage( const char* pOutput, const char* pInput )
 	:	m_outputFilename( pOutput ),
-		m_inputFilename( pInput )
+		m_inputFilename( pInput ),
+		m_discImagePtr( 0 )
 {
-	// open output file
-
-	m_outputFile.open( pOutput, ios_base::out | ios_base::binary | ios_base::trunc );
-
-	if ( !m_outputFile )
-	{
-		throw AsmException_FileError_OpenDiscDest( pOutput );
-	}
+	// make space for the catalogue
+	m_aDiscImage.resize( 0x200 );
 
 	// open and load input file if necessary
 
 	if ( pInput != NULL )
 	{
-		m_inputFile.open( pInput, ios_base::in | ios_base::binary );
+		std::ifstream inputFile;
+		inputFile.open( pInput, ios_base::in | ios_base::binary );
 
-		if ( !m_inputFile )
+		if ( !inputFile )
 		{
 			throw AsmException_FileError_OpenDiscSource( pInput );
 		}
 
-		if ( !m_inputFile.read( reinterpret_cast< char* >( m_aCatalog ), 0x200 ) )
+		if ( !inputFile.read( reinterpret_cast< char* >( &m_aDiscImage[ 0 ] ), 0x200 ) )
 		{
 			throw AsmException_FileError_ReadDiscSource( pInput );
 		}
@@ -69,14 +66,14 @@ DiscImage::DiscImage( const char* pOutput, const char* pInput )
 
 		int endSectorAddr;
 
-		if ( m_aCatalog[ 0x105 ] > 0 )
+		if ( m_aDiscImage[ 0x105 ] > 0 )
 		{
-			int sectorAddrOfLastFile	= m_aCatalog[ 0x10F ] +
-										  ( ( m_aCatalog[ 0x10E ] & 0x03 ) << 8 );
+			int sectorAddrOfLastFile	= m_aDiscImage[ 0x10F ] +
+										  ( ( m_aDiscImage[ 0x10E ] & 0x03 ) << 8 );
 
-			int lengthOfLastFile		= m_aCatalog[ 0x10C ] +
-										  ( m_aCatalog[ 0x10D ] << 8 ) +
-										  ( ( m_aCatalog[ 0x10E ] & 0x30 ) << 12 );
+			int lengthOfLastFile		= m_aDiscImage[ 0x10C ] +
+										  ( m_aDiscImage[ 0x10D ] << 8 ) +
+										  ( ( m_aDiscImage[ 0x10E ] & 0x30 ) << 12 );
 
 			endSectorAddr = sectorAddrOfLastFile + ( ( lengthOfLastFile + 0xFF ) >> 8 );
 		}
@@ -85,9 +82,9 @@ DiscImage::DiscImage( const char* pOutput, const char* pInput )
 			endSectorAddr = 2;
 		}
 
-		m_inputFile.seekg( 0, ios::end );
-		int length = static_cast< int >( m_inputFile.tellg() );
-		m_inputFile.seekg( 0, ios::beg );
+		inputFile.seekg( 0, ios::end );
+		int length = static_cast< int >( inputFile.tellg() );
+		inputFile.seekg( 0, ios::beg );
 
 		assert( length >= endSectorAddr * 0x100 );
 
@@ -95,37 +92,28 @@ DiscImage::DiscImage( const char* pOutput, const char* pInput )
 
 		for ( int sect = 0; sect < endSectorAddr; sect++ )
 		{
-			if ( !m_inputFile.read( sector, 0x100 ) )
+			if ( !inputFile.read( sector, 0x100 ) )
 			{
 				throw AsmException_FileError_ReadDiscSource( pInput );
 			}
 
-			if ( !m_outputFile.write( sector, 0x100 ) )
-			{
-				throw AsmException_FileError_WriteDiscDest( pOutput );
-			}
+			Write( sector, 0x100 );
 		}
 
+		inputFile.close();
 	}
 	else
 	{
 		// generate a blank catalog
 
-		memset( m_aCatalog, 0, 0x200 );
-		m_aCatalog[ 0x106 ] = 0x03 | ( ( GlobalData::Instance().GetDiscOption() & 3 ) << 4);
-		m_aCatalog[ 0x107 ] = 0x20;
+		m_aDiscImage[ 0x106 ] = 0x03 | ( ( GlobalData::Instance().GetDiscOption() & 3 ) << 4);
+		m_aDiscImage[ 0x107 ] = 0x20;
 
 		const std::string& title = GlobalData::Instance().GetDiscTitle();
-		strncpy( reinterpret_cast< char* >( m_aCatalog ), title.substr(0, 8).c_str(), 8);
+		strncpy( reinterpret_cast< char* >( &m_aDiscImage[ 0 ] ), title.substr(0, 8).c_str(), 8);
 		if ( title.length() > 8 )
 		{
-			strncpy( reinterpret_cast< char* >( m_aCatalog + 0x100 ), title.substr(8, 4).c_str(), 4);
-		}
-
-		if ( !m_outputFile.write( reinterpret_cast< char* >( m_aCatalog ), 0x200 ) )
-		{
-			// write error
-			throw AsmException_FileError_WriteDiscDest( m_outputFilename );
+			strncpy( reinterpret_cast< char* >( &m_aDiscImage[ 0x100 ] ), title.substr(8, 4).c_str(), 4);
 		}
 
 		// add in a boot file
@@ -139,7 +127,7 @@ DiscImage::DiscImage( const char* pOutput, const char* pInput )
 
 			AddFile( "!Boot", reinterpret_cast< unsigned char* >( pPlingBoot ), 0, 0xFFFFFF, strlen( pPlingBoot ) );
 
-			m_aCatalog[ 0x106 ] = 0x33;		// force *OPT to 3 (EXEC)
+			m_aDiscImage[ 0x106 ] = 0x33;		// force *OPT to 3 (EXEC)
 		}
 	}
 
@@ -156,16 +144,31 @@ DiscImage::DiscImage( const char* pOutput, const char* pInput )
 /*************************************************************************************************/
 DiscImage::~DiscImage()
 {
-	// write back the catalog
+}
 
-	m_outputFile.seekp( 0, ios::beg );
-	if ( !m_outputFile.write( reinterpret_cast< char* >( m_aCatalog ), 0x200 ) )
+
+
+/*************************************************************************************************/
+/**
+	DiscImage::Save()
+*/
+/*************************************************************************************************/
+void DiscImage::Save()
+{
+	std::ofstream outputFile;
+	outputFile.open( m_outputFilename, ios_base::out | ios_base::binary | ios_base::trunc );
+
+	if ( !outputFile )
 	{
-		// don't throw an exception in the destructor, just bear it silently..!
+		throw AsmException_FileError_OpenDiscDest( m_outputFilename );
 	}
 
-	m_outputFile.close();
-	m_inputFile.close();
+	if ( !outputFile.write( reinterpret_cast< char* >( &m_aDiscImage[ 0 ]), m_aDiscImage.size() ) )
+	{
+		throw AsmException_FileError_WriteDiscDest( m_outputFilename );
+	}
+
+	outputFile.close();
 }
 
 
@@ -191,7 +194,7 @@ void DiscImage::AddFile( const char* pName, const unsigned char* pAddr, int load
 		throw AsmException_FileError_BadName( m_outputFilename );
 	}
 
-	if ( m_aCatalog[ 0x105 ] == 31*8 )
+	if ( m_aDiscImage[ 0x105 ] == 31*8 )
 	{
 		// Catalog full
 		throw AsmException_FileError_TooManyFiles( m_outputFilename );
@@ -199,20 +202,20 @@ void DiscImage::AddFile( const char* pName, const unsigned char* pAddr, int load
 
 	// Check the file doesn't already exist
 
-	for ( int i = m_aCatalog[ 0x105 ]; i > 0; i -= 8 )
+	for ( int i = m_aDiscImage[ 0x105 ]; i > 0; i -= 8 )
 	{
 		bool bTheSame = true;
 
 		for ( size_t j = 0; j < strlen( pName ); j++ )
 		{
-			if ( toupper( pName[ j ] ) != toupper( m_aCatalog[ i + j ] ) )
+			if ( toupper( pName[ j ] ) != toupper( m_aDiscImage[ i + j ] ) )
 			{
 				bTheSame = false;
 				break;
 			}
 		}
 
-		if ( bTheSame && ( m_aCatalog[ i + 7 ] & 0x7F ) == '$' )
+		if ( bTheSame && ( m_aDiscImage[ i + 7 ] & 0x7F ) == '$' )
 		{
 			// File already exists
 			throw AsmException_FileError_FileExists( m_outputFilename );
@@ -223,14 +226,14 @@ void DiscImage::AddFile( const char* pName, const unsigned char* pAddr, int load
 
 	int sectorAddrOfThisFile;
 
-	if ( m_aCatalog[ 0x105 ] > 0 )
+	if ( m_aDiscImage[ 0x105 ] > 0 )
 	{
-		int sectorAddrOfLastFile	= m_aCatalog[ 0x10F ] +
-									  ( ( m_aCatalog[ 0x10E ] & 0x03 ) << 8 );
+		int sectorAddrOfLastFile	= m_aDiscImage[ 0x10F ] +
+									  ( ( m_aDiscImage[ 0x10E ] & 0x03 ) << 8 );
 
-		int lengthOfLastFile		= m_aCatalog[ 0x10C ] +
-									  ( m_aCatalog[ 0x10D ] << 8 ) +
-									  ( ( m_aCatalog[ 0x10E ] & 0x30 ) << 12 );
+		int lengthOfLastFile		= m_aDiscImage[ 0x10C ] +
+									  ( m_aDiscImage[ 0x10D ] << 8 ) +
+									  ( ( m_aDiscImage[ 0x10E ] & 0x30 ) << 12 );
 
 		sectorAddrOfThisFile = sectorAddrOfLastFile + ( ( lengthOfLastFile + 0xFF ) >> 8 );
 	}
@@ -249,72 +252,79 @@ void DiscImage::AddFile( const char* pName, const unsigned char* pAddr, int load
 
 	// Make space in the catalog for the new file
 
-	for ( int i = m_aCatalog[ 0x105 ]; i > 0; i -= 8 )
+	for ( int i = m_aDiscImage[ 0x105 ]; i > 0; i -= 8 )
 	{
 		for ( int j = 0; j < 8; j++ )
 		{
-			m_aCatalog[ i + j + 8 ] = m_aCatalog[ i + j ];
-			m_aCatalog[ i + j + 0x108 ] = m_aCatalog[ i + j + 0x100 ];
+			m_aDiscImage[ i + j + 8 ] = m_aDiscImage[ i + j ];
+			m_aDiscImage[ i + j + 0x108 ] = m_aDiscImage[ i + j + 0x100 ];
 		}
 	}
 
 	// Increment the file count
 
-	m_aCatalog[ 0x105 ] += 8;
+	m_aDiscImage[ 0x105 ] += 8;
 
 	// Write filename
 
 	for ( size_t j = 0; j < 7; j++ )
 	{
-		m_aCatalog[ j + 8 ] = ( j < strlen( pName ) ) ? pName[ j ] : ' ';
+		m_aDiscImage[ j + 8 ] = ( j < strlen( pName ) ) ? pName[ j ] : ' ';
 	}
 
 	// Write directory name
 
-	m_aCatalog[ 15 ] = dirName;
+	m_aDiscImage[ 15 ] = dirName;
 
 	// Write load address
 
-	m_aCatalog[ 0x108 ] = load & 0xFF;
-	m_aCatalog[ 0x109 ] = ( load & 0xFF00 ) >> 8;
+	m_aDiscImage[ 0x108 ] = load & 0xFF;
+	m_aDiscImage[ 0x109 ] = ( load & 0xFF00 ) >> 8;
 
 	// Write exec address
 
-	m_aCatalog[ 0x10A ] = exec & 0xFF;
-	m_aCatalog[ 0x10B ] = ( exec & 0xFF00 ) >> 8;
+	m_aDiscImage[ 0x10A ] = exec & 0xFF;
+	m_aDiscImage[ 0x10B ] = ( exec & 0xFF00 ) >> 8;
 
 	// Write length
 
-	m_aCatalog[ 0x10C ] = len & 0xFF;
-	m_aCatalog[ 0x10D ] = ( len & 0xFF00 ) >> 8;
+	m_aDiscImage[ 0x10C ] = len & 0xFF;
+	m_aDiscImage[ 0x10D ] = ( len & 0xFF00 ) >> 8;
 
 	// Write sector start
 
-	m_aCatalog[ 0x10F ] = sectorAddrOfThisFile & 0xFF;
+	m_aDiscImage[ 0x10F ] = sectorAddrOfThisFile & 0xFF;
 
 	// Write miscellaneous bits
 
-	m_aCatalog[ 0x10E ] = ( ( ( load >> 16 ) & 0x03 ) << 2 ) |
+	m_aDiscImage[ 0x10E ] = ( ( ( load >> 16 ) & 0x03 ) << 2 ) |
 						  ( ( ( exec >> 16 ) & 0x03 ) << 6 ) |
 						  ( ( ( len  >> 16 ) & 0x03 ) << 4 ) |
 						  ( ( sectorAddrOfThisFile >> 8 ) & 0x03 );
 
 	// Now write the actual file
 
-	assert( static_cast< int >( m_outputFile.tellp() ) == sectorAddrOfThisFile * 0x100 );
+	m_discImagePtr = sectorAddrOfThisFile * 0x100;
 
-	if ( !m_outputFile.write( reinterpret_cast< const char* >( pAddr ), len ) )
-	{
-		// Write error
-		throw AsmException_FileError_WriteDiscDest( m_outputFilename );
-	}
+	Write( reinterpret_cast< const char* >( pAddr ), len );
 
-	while ( ( m_outputFile.tellp() & 0xFF ) != 0 )
+	if ( ( m_discImagePtr & 0xFF ) != 0 )
 	{
-		if ( !m_outputFile.put( 0 ) )
-		{
-			// Write error
-			throw AsmException_FileError_WriteDiscDest( m_outputFilename );
-		}
+		m_aDiscImage.resize( ( m_discImagePtr & ~0xFF ) + 0x100 );
+		m_discImagePtr = m_aDiscImage.size();
 	}
+}
+
+
+
+/*************************************************************************************************/
+/**
+	DiscImage::Write()
+*/
+/*************************************************************************************************/
+void DiscImage::Write( const char* pAddr, int len )
+{
+	m_aDiscImage.resize( m_discImagePtr + len );
+	memcpy( &m_aDiscImage[ m_discImagePtr ], pAddr, len );
+	m_discImagePtr += len;
 }

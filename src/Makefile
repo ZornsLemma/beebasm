@@ -35,11 +35,11 @@ TARGET			:=		../beebasm
 # Define compiler switches
 
 WARNFLAGS		:=		-Wall -W -Wcast-qual -Werror -Wshadow -Wcast-align -Wold-style-cast -Woverloaded-virtual
-CXXFLAGS		:=		-O3 -pedantic $(WARNFLAGS)
+CXXFLAGS		:=		-g -O0 -pedantic $(WARNFLAGS)
 
 # Define linker switches
 
-LDFLAGS			:=		-s
+LDFLAGS			:=		-g
 
 # Define 2nd party libs to link
 
