@@ -1,0 +1,13 @@
+org &2000
+
+.start
+
+	lda #65
+
+.end
+
+save "test", start, end
+puttext "puttextdemo1.txt", "text1", &0000
+puttext "puttextdemo2.txt", "text2", &0000
+puttext "puttextdemo3.txt", "text3", &0000
+puttext "puttextdemo4.txt", "text4", &0000
