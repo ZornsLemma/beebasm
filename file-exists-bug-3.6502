@@ -1,0 +1,6 @@
+org &2000
+.start
+.end
+
+save "d.test", start, end
+save "d.test", start, end

@@ -1,0 +1,7 @@
+org &2000
+.start
+	lda #65
+.end
+
+save "test", start, end
+save "d.test", start, end
