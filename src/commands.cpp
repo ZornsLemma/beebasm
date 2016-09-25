@@ -1747,13 +1747,13 @@ void LineParser::HandlePutFileCommon( bool bText )
 		if ( bText )
 		{
 			fileSize = 0;
-			char c;
+			int c;
 			while ( ( c = inputFile.get() ) != EOF )
 			{
 				if ( c == '\n' || c == '\r' )
 				{
 					// swallow other half of CRLF/LFCR, if present
-					char other_half = ( c == '\n' ) ? '\r' : '\n';
+					int other_half = ( c == '\n' ) ? '\r' : '\n';
 					ifstream::streampos p = inputFile.tellg();
 					if ( inputFile.get() != other_half )
 					{
