@@ -128,135 +128,155 @@ KeyWord *QuickTable[26*26];
 
 struct Abbreviation
 {
-	Abbreviation(const char* name, Uint8 token)
-		: Name(name), Token(token)
+	Abbreviation(const char* name, Uint8 token, int minabbrlen)
+		: Name(name), Token(token), MinAbbrLen(minabbrlen)
 	{}
 
 	const char *Name;
 	Uint8 Token;
+	int MinAbbrLen;
 };
 
 struct Abbreviation AbbreviationTable[] =
 {
-	Abbreviation("AND", 0x80),
-	Abbreviation("DIV", 0x81),
-	Abbreviation("EOR", 0x82),
-	Abbreviation("MOD", 0x83),
-	Abbreviation("OR", 0x84),
-	Abbreviation("ERROR", 0x85),
-	Abbreviation("LINE", 0x86),
-	Abbreviation("OFF", 0x87),
-	Abbreviation("STEP", 0x88),
-	Abbreviation("SPC", 0x89),
-	Abbreviation("TAB(", 0x8a),
-	Abbreviation("ELSE", 0x8b),
-	Abbreviation("THEN", 0x8c),
-	Abbreviation("OPENIN", 0x8e),
-	Abbreviation("PTR", 0x8f),
-	Abbreviation("PAGE", 0x90),
-	Abbreviation("TIME", 0x91),
-	Abbreviation("LOMEM", 0x92),
-	Abbreviation("HIMEM", 0x93),
-	Abbreviation("ABS", 0x94),
-	Abbreviation("ACS", 0x95),
-	Abbreviation("ADVAL", 0x96),
-	Abbreviation("ASC", 0x97),
-	Abbreviation("ASN", 0x98),
-	Abbreviation("ATN", 0x99),
-	Abbreviation("BGET", 0x9a),
-	Abbreviation("COS", 0x9b),
-	Abbreviation("COUNT", 0x9c),
-	Abbreviation("DEG", 0x9d),
-	Abbreviation("ERL", 0x9e),
-	Abbreviation("ERR", 0x9f),
-	Abbreviation("EVAL", 0xa0),
-	Abbreviation("EXP", 0xa1),
-	Abbreviation("EXT", 0xa2),
-	Abbreviation("FALSE", 0xa3),
-	Abbreviation("FN", 0xa4),
-	Abbreviation("GET", 0xa5),
-	Abbreviation("INKEY", 0xa6),
-	Abbreviation("INSTR(", 0xa7),
-	Abbreviation("INT", 0xa8),
-	Abbreviation("LEN", 0xa9),
-	Abbreviation("LN", 0xaa),
-	Abbreviation("LOG", 0xab),
-	Abbreviation("NOT", 0xac),
-	Abbreviation("OPENUP", 0xad),
-	Abbreviation("OPENOUT", 0xae),
-	Abbreviation("PI", 0xaf),
-	Abbreviation("POINT(", 0xb0),
-	Abbreviation("POS", 0xb1),
-	Abbreviation("RAD", 0xb2),
-	Abbreviation("RND", 0xb3),
-	Abbreviation("SGN", 0xb4),
-	Abbreviation("SIN", 0xb5),
-	Abbreviation("SQR", 0xb6),
-	Abbreviation("TAN", 0xb7),
-	Abbreviation("TO", 0xb8),
-	Abbreviation("TRUE", 0xb9),
-	Abbreviation("USR", 0xba),
-	Abbreviation("VAL", 0xbb),
-	Abbreviation("VPOS", 0xbc),
-	Abbreviation("CHR$", 0xbd),
-	Abbreviation("GET$", 0xbe),
-	Abbreviation("INKEY$", 0xbf),
-	Abbreviation("LEFT$(", 0xc0),
-	Abbreviation("MID$(", 0xc1),
-	Abbreviation("RIGHT$(", 0xc2),
-	Abbreviation("STR$", 0xc3),
-	Abbreviation("STRING$(", 0xc4),
-	Abbreviation("EOF", 0xc5),
-	Abbreviation("PTR", 0xcf),
-	Abbreviation("PAGE", 0xd0),
-	Abbreviation("TIME", 0xd1),
-	Abbreviation("LOMEM", 0xd2),
-	Abbreviation("HIMEM", 0xd3),
-	Abbreviation("SOUND", 0xd4),
-	Abbreviation("BPUT", 0xd5),
-	Abbreviation("CALL", 0xd6),
-	Abbreviation("CHAIN", 0xd7),
-	Abbreviation("CLEAR", 0xd8),
-	Abbreviation("CLOSE", 0xd9),
-	Abbreviation("CLG", 0xda),
-	Abbreviation("CLS", 0xdb),
-	Abbreviation("DATA", 0xdc),
-	Abbreviation("DEF", 0xdd),
-	Abbreviation("DIM", 0xde),
-	Abbreviation("DRAW", 0xdf),
-	Abbreviation("END", 0xe0),
-	Abbreviation("ENDPROC", 0xe1), // TODO MAY NEED TO MAKE SURE THIS COMES BEFORE END
-	Abbreviation("ENVELOPE", 0xe2),
-	Abbreviation("FOR", 0xe3),
-	Abbreviation("GOSUB", 0xe4),
-	Abbreviation("GOTO", 0xe5),
-	Abbreviation("GCOL", 0xe6),
-	Abbreviation("IF", 0xe7),
-	Abbreviation("INPUT", 0xe8),
-	Abbreviation("LET", 0xe9),
-	Abbreviation("LOCAL", 0xea),
-	Abbreviation("MODE", 0xeb),
-	Abbreviation("MOVE", 0xec),
-	Abbreviation("NEXT", 0xed),
-	Abbreviation("ON", 0xee),
-	Abbreviation("VDU", 0xef),
-	Abbreviation("PLOT", 0xf0),
-	Abbreviation("PRINT", 0xf1),
-	Abbreviation("PROC", 0xf2),
-	Abbreviation("READ", 0xf3),
-	Abbreviation("REM", 0xf4),
-	Abbreviation("REPEAT", 0xf5),
-	Abbreviation("REPORT", 0xf6),
-	Abbreviation("RESTORE", 0xf7),
-	Abbreviation("RETURN", 0xf8),
-	Abbreviation("RUN", 0xf9),
-	Abbreviation("STOP", 0xfa),
-	Abbreviation("COLOUR", 0xfb),
-	Abbreviation("COLOR", 0xfb),
-	Abbreviation("TRACE", 0xfc),
-	Abbreviation("UNTIL", 0xfd),
-	Abbreviation("WIDTH", 0xfe),
-	Abbreviation("OSCLI", 0xff)
+	Abbreviation("ABS", 0x94, 3),
+	Abbreviation("ACS", 0x95, 3),
+	Abbreviation("ADVAL", 0x96, 2),
+	Abbreviation("AND", 0x80, 1),
+	Abbreviation("ASC", 0x97, 3),
+	Abbreviation("ASN", 0x98, 3),
+	Abbreviation("ATN", 0x99, 3),
+
+	Abbreviation("BGET", 0x9a, 1),
+	Abbreviation("BPUT", 0xd5, 2),
+
+	Abbreviation("CALL", 0xd6, 2),
+	Abbreviation("CHAIN", 0xd7, 2),
+	Abbreviation("CHR$", 0xbd, 3),
+	Abbreviation("CLEAR", 0xd8, 2),
+	Abbreviation("CLG", 0xda, 3),
+	Abbreviation("CLOSE", 0xd9, 3),
+	Abbreviation("CLS", 0xdb, 3),
+	Abbreviation("COLOR", 0xfb, 1),
+	Abbreviation("COLOUR", 0xfb, 1),
+	Abbreviation("COS", 0x9b, 3),
+	Abbreviation("COUNT", 0x9c, 3),
+
+	Abbreviation("DATA", 0xdc, 1),
+	Abbreviation("DEF", 0xdd, 3),
+	Abbreviation("DEG", 0x9d, 3),
+	Abbreviation("DIM", 0xde, 3),
+	Abbreviation("DIV", 0x81, 3),
+	Abbreviation("DRAW", 0xdf, 2),
+
+	Abbreviation("ELSE", 0x8b, 2),
+	Abbreviation("ENDPROC", 0xe1, 1),
+	Abbreviation("END", 0xe0, 3),
+	Abbreviation("ENVELOPE", 0xe2, 3),
+	Abbreviation("EOF", 0xc5, 3),
+	Abbreviation("EOR", 0x82, 3),
+	Abbreviation("ERL", 0x9e, 3),
+	Abbreviation("ERR", 0x9f, 3),
+	Abbreviation("ERROR", 0x85, 3),
+	Abbreviation("EVAL", 0xa0, 2),
+	Abbreviation("EXP", 0xa1, 3),
+	Abbreviation("EXT", 0xa2, 3),
+
+	Abbreviation("FALSE", 0xa3, 2),
+	Abbreviation("FN", 0xa4, 2),
+	Abbreviation("FOR", 0xe3, 1),
+
+	Abbreviation("GCOL", 0xe6, 2),
+	Abbreviation("GET", 0xa5, 3),
+	Abbreviation("GET$", 0xbe, 2),
+	Abbreviation("GOSUB", 0xe4, 3),
+	Abbreviation("GOTO", 0xe5, 1),
+
+	Abbreviation("HIMEM", 0x93, 1),
+	Abbreviation("HIMEM", 0xd3, 1),
+
+	Abbreviation("IF", 0xe7, 2),
+	Abbreviation("INKEY", 0xa6, 5),
+	Abbreviation("INKEY$", 0xbf, 3),
+	Abbreviation("INPUT", 0xe8, 1),
+	Abbreviation("INSTR(", 0xa7, 3),
+	Abbreviation("INT", 0xa8, 3),
+
+	Abbreviation("LEFT$(", 0xc0, 2),
+	Abbreviation("LEN", 0xa9, 3),
+	Abbreviation("LET", 0xe9, 3),
+	Abbreviation("LINE", 0x86, 4),
+	Abbreviation("LN", 0xaa, 2),
+	Abbreviation("LOCAL", 0xea, 3),
+	Abbreviation("LOG", 0xab, 3),
+	Abbreviation("LOMEM", 0x92, 3),
+	Abbreviation("LOMEM", 0xd2, 3),
+
+	Abbreviation("MID$(", 0xc1, 1),
+	Abbreviation("MOD", 0x83, 3),
+	Abbreviation("MODE", 0xeb, 2),
+	Abbreviation("MOVE", 0xec, 3),
+
+	Abbreviation("NEXT", 0xed, 1),
+	Abbreviation("NOT", 0xac, 3),
+
+	Abbreviation("OFF", 0x87, 3),
+	Abbreviation("ON", 0xee, 2),
+	Abbreviation("OPENIN", 0x8e, 2),
+	Abbreviation("OPENOUT", 0xae, 5),
+	Abbreviation("OPENUP", 0xad, 6),
+	Abbreviation("OR", 0x84, 2),
+	Abbreviation("OSCLI", 0xff, 3),
+
+	Abbreviation("PAGE", 0x90, 2),
+	Abbreviation("PAGE", 0xd0, 2),
+	Abbreviation("PI", 0xaf, 2),
+	Abbreviation("PLOT", 0xf0, 2),
+	Abbreviation("POINT(", 0xb0, 2),
+	Abbreviation("POS", 0xb1, 3),
+	Abbreviation("PRINT", 0xf1, 1),
+	Abbreviation("PROC", 0xf2, 3),
+	Abbreviation("PTR", 0x8f, 2),
+	Abbreviation("PTR", 0xcf, 2),
+
+	Abbreviation("RAD", 0xb2, 3),
+	Abbreviation("READ", 0xf3, 3),
+	Abbreviation("REM", 0xf4, 3),
+	Abbreviation("REPEAT", 0xf5, 3),
+	Abbreviation("REPORT", 0xf6, 4),
+	Abbreviation("RESTORE", 0xf7, 3),
+	Abbreviation("RETURN", 0xf8, 1),
+	Abbreviation("RIGHT$(", 0xc2, 2),
+	Abbreviation("RND", 0xb3, 3),
+	Abbreviation("RUN", 0xf9, 3),
+
+	Abbreviation("SGN", 0xb4, 3),
+	Abbreviation("SIN", 0xb5, 3),
+	Abbreviation("SOUND", 0xd4, 2),
+	Abbreviation("SPC", 0x89, 3),
+	Abbreviation("SQR", 0xb6, 3),
+	Abbreviation("STEP", 0x88, 1),
+	Abbreviation("STOP", 0xfa, 3),
+	Abbreviation("STR$", 0xc3, 3),
+	Abbreviation("STRING$(", 0xc4, 4),
+
+	Abbreviation("TAB(", 0x8a, 4),
+	Abbreviation("TAN", 0xb7, 1),
+	Abbreviation("THEN", 0x8c, 2),
+	Abbreviation("TIME", 0x91, 2),
+	Abbreviation("TIME", 0xd1, 2),
+	Abbreviation("TO", 0xb8, 2),
+	Abbreviation("TRACE", 0xfc, 2),
+	Abbreviation("TRUE", 0xb9, 4),
+
+	Abbreviation("UNTIL", 0xfd, 1),
+	Abbreviation("USR", 0xba, 3),
+
+	Abbreviation("VAL", 0xbb, 3),
+	Abbreviation("VDU", 0xef, 1),
+	Abbreviation("VPOS", 0xbc, 2),
+
+	Abbreviation("WIDTH", 0xfe, 1)
 };
 
 #define HashCode(str)	(str[0] < 'A' || str[0] > 'Z' || str[1] < 'A' || str[1] > 'Z') ? 0 : ((str[0] - 'A')*26 + (str[1] - 'A'))
@@ -585,6 +605,8 @@ void GetCharacter()
 	}
 #endif
 
+	// TODO: This is a brute-force search of entire AbbreviationTable; we could at least partition
+	// it by initial letter to speed this up.
 	for (size_t AbbrNum = 0; AbbrNum < sizeof(AbbreviationTable)/sizeof(AbbreviationTable[0]); ++AbbrNum)
 	{
 		const char *Name = AbbreviationTable[AbbrNum].Name;
@@ -596,18 +618,21 @@ void GetCharacter()
 			break;
 		}
 		char *DotPtr = reinterpret_cast<char *>(memchr(IncomingBuffer, '.', IncomingPointer));
-		if (DotPtr && DotPtr > IncomingBuffer)
+		if (DotPtr)
 		{
 			int AbbreviationLen = DotPtr - IncomingBuffer;
-			int i;
-			for (i = 0; i < AbbreviationLen && IncomingBuffer[i] == Name[i]; ++i)
-				;
-			if (i == AbbreviationLen)
+			if (AbbreviationLen >= AbbreviationTable[AbbrNum].MinAbbrLen)
 			{
-				Token = AbbreviationTable[AbbrNum].Token;
-				TokenLen = AbbreviationLen + 1; // +1 to include '.'
-				NextChar = IncomingBuffer[TokenLen];
-				break;
+				int i;
+				for (i = 0; i < AbbreviationLen && IncomingBuffer[i] == Name[i]; ++i)
+					;
+				if (i == AbbreviationLen)
+				{
+					Token = AbbreviationTable[AbbrNum].Token;
+					TokenLen = AbbreviationLen + 1; // +1 to include '.'
+					NextChar = IncomingBuffer[TokenLen];
+					break;
+				}
 			}
 		}
 	}
