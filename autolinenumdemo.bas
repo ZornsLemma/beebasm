@@ -1,7 +1,7 @@
 REM Line numbers are now optional in BASIC programs used with the putbasic
 REM command.
 100PRINT "but you can give them if you want, so the change is backwards-";
-110PRINT "compatible."
+110P. "compatible."
 FOR I%=1 TO 10
 RESTORE (1000+RND(3)*10)
 READ word$

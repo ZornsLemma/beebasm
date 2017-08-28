@@ -126,6 +126,139 @@ KeyWord *QuickTable[26*26];
 
 */
 
+struct Abbreviation
+{
+	Abbreviation(const char* name, Uint8 token)
+		: Name(name), Token(token)
+	{}
+
+	const char *Name;
+	Uint8 Token;
+};
+
+struct Abbreviation AbbreviationTable[] =
+{
+	Abbreviation("AND", 0x80),
+	Abbreviation("DIV", 0x81),
+	Abbreviation("EOR", 0x82),
+	Abbreviation("MOD", 0x83),
+	Abbreviation("OR", 0x84),
+	Abbreviation("ERROR", 0x85),
+	Abbreviation("LINE", 0x86),
+	Abbreviation("OFF", 0x87),
+	Abbreviation("STEP", 0x88),
+	Abbreviation("SPC", 0x89),
+	Abbreviation("TAB(", 0x8a),
+	Abbreviation("ELSE", 0x8b),
+	Abbreviation("THEN", 0x8c),
+	Abbreviation("OPENIN", 0x8e),
+	Abbreviation("PTR", 0x8f),
+	Abbreviation("PAGE", 0x90),
+	Abbreviation("TIME", 0x91),
+	Abbreviation("LOMEM", 0x92),
+	Abbreviation("HIMEM", 0x93),
+	Abbreviation("ABS", 0x94),
+	Abbreviation("ACS", 0x95),
+	Abbreviation("ADVAL", 0x96),
+	Abbreviation("ASC", 0x97),
+	Abbreviation("ASN", 0x98),
+	Abbreviation("ATN", 0x99),
+	Abbreviation("BGET", 0x9a),
+	Abbreviation("COS", 0x9b),
+	Abbreviation("COUNT", 0x9c),
+	Abbreviation("DEG", 0x9d),
+	Abbreviation("ERL", 0x9e),
+	Abbreviation("ERR", 0x9f),
+	Abbreviation("EVAL", 0xa0),
+	Abbreviation("EXP", 0xa1),
+	Abbreviation("EXT", 0xa2),
+	Abbreviation("FALSE", 0xa3),
+	Abbreviation("FN", 0xa4),
+	Abbreviation("GET", 0xa5),
+	Abbreviation("INKEY", 0xa6),
+	Abbreviation("INSTR(", 0xa7),
+	Abbreviation("INT", 0xa8),
+	Abbreviation("LEN", 0xa9),
+	Abbreviation("LN", 0xaa),
+	Abbreviation("LOG", 0xab),
+	Abbreviation("NOT", 0xac),
+	Abbreviation("OPENUP", 0xad),
+	Abbreviation("OPENOUT", 0xae),
+	Abbreviation("PI", 0xaf),
+	Abbreviation("POINT(", 0xb0),
+	Abbreviation("POS", 0xb1),
+	Abbreviation("RAD", 0xb2),
+	Abbreviation("RND", 0xb3),
+	Abbreviation("SGN", 0xb4),
+	Abbreviation("SIN", 0xb5),
+	Abbreviation("SQR", 0xb6),
+	Abbreviation("TAN", 0xb7),
+	Abbreviation("TO", 0xb8),
+	Abbreviation("TRUE", 0xb9),
+	Abbreviation("USR", 0xba),
+	Abbreviation("VAL", 0xbb),
+	Abbreviation("VPOS", 0xbc),
+	Abbreviation("CHR$", 0xbd),
+	Abbreviation("GET$", 0xbe),
+	Abbreviation("INKEY$", 0xbf),
+	Abbreviation("LEFT$(", 0xc0),
+	Abbreviation("MID$(", 0xc1),
+	Abbreviation("RIGHT$(", 0xc2),
+	Abbreviation("STR$", 0xc3),
+	Abbreviation("STRING$(", 0xc4),
+	Abbreviation("EOF", 0xc5),
+	Abbreviation("PTR", 0xcf),
+	Abbreviation("PAGE", 0xd0),
+	Abbreviation("TIME", 0xd1),
+	Abbreviation("LOMEM", 0xd2),
+	Abbreviation("HIMEM", 0xd3),
+	Abbreviation("SOUND", 0xd4),
+	Abbreviation("BPUT", 0xd5),
+	Abbreviation("CALL", 0xd6),
+	Abbreviation("CHAIN", 0xd7),
+	Abbreviation("CLEAR", 0xd8),
+	Abbreviation("CLOSE", 0xd9),
+	Abbreviation("CLG", 0xda),
+	Abbreviation("CLS", 0xdb),
+	Abbreviation("DATA", 0xdc),
+	Abbreviation("DEF", 0xdd),
+	Abbreviation("DIM", 0xde),
+	Abbreviation("DRAW", 0xdf),
+	Abbreviation("END", 0xe0),
+	Abbreviation("ENDPROC", 0xe1), // TODO MAY NEED TO MAKE SURE THIS COMES BEFORE END
+	Abbreviation("ENVELOPE", 0xe2),
+	Abbreviation("FOR", 0xe3),
+	Abbreviation("GOSUB", 0xe4),
+	Abbreviation("GOTO", 0xe5),
+	Abbreviation("GCOL", 0xe6),
+	Abbreviation("IF", 0xe7),
+	Abbreviation("INPUT", 0xe8),
+	Abbreviation("LET", 0xe9),
+	Abbreviation("LOCAL", 0xea),
+	Abbreviation("MODE", 0xeb),
+	Abbreviation("MOVE", 0xec),
+	Abbreviation("NEXT", 0xed),
+	Abbreviation("ON", 0xee),
+	Abbreviation("VDU", 0xef),
+	Abbreviation("PLOT", 0xf0),
+	Abbreviation("PRINT", 0xf1),
+	Abbreviation("PROC", 0xf2),
+	Abbreviation("READ", 0xf3),
+	Abbreviation("REM", 0xf4),
+	Abbreviation("REPEAT", 0xf5),
+	Abbreviation("REPORT", 0xf6),
+	Abbreviation("RESTORE", 0xf7),
+	Abbreviation("RETURN", 0xf8),
+	Abbreviation("RUN", 0xf9),
+	Abbreviation("STOP", 0xfa),
+	Abbreviation("COLOUR", 0xfb),
+	Abbreviation("COLOR", 0xfb),
+	Abbreviation("TRACE", 0xfc),
+	Abbreviation("UNTIL", 0xfd),
+	Abbreviation("WIDTH", 0xfe),
+	Abbreviation("OSCLI", 0xff)
+};
+
 #define HashCode(str)	(str[0] < 'A' || str[0] > 'Z' || str[1] < 'A' || str[1] > 'Z') ? 0 : ((str[0] - 'A')*26 + (str[1] - 'A'))
 
 void SetupBASICTables()
@@ -373,6 +506,7 @@ bool ExportBASIC(const char *Filename, Uint8 *Memory)
 
 char IncomingBuffer[9];
 Uint8 Token, NextChar;
+int TokenLen; // for Token>=0x80 only
 unsigned int IncomingPointer;
 FILE *inputfile;
 bool EndOfFile, NumberStart;
@@ -433,6 +567,7 @@ void GetCharacter()
 
 	/* check for tokens, set flags accordingly. Be a bit dense about this for now! */
 	Token = IncomingBuffer[0];
+#if 0 // SFTODO
 	int Code = HashCode(IncomingBuffer);
 	KeyWord *CheckPtr = QuickTable[Code];
 
@@ -441,11 +576,40 @@ void GetCharacter()
 		if(IncomingPointer >= CheckPtr->StrLen && !strncmp(IncomingBuffer, CheckPtr->Name, CheckPtr->StrLen))
 		{
 			Token = (CheckPtr - KeyWordTable) + 0x80;
+			TokenLen = CheckPtr->StrLen;
 			NextChar = IncomingBuffer[CheckPtr->StrLen];
 			break;
 		}
 
 		CheckPtr = CheckPtr->Next;
+	}
+#endif
+
+	for (size_t AbbrNum = 0; AbbrNum < sizeof(AbbreviationTable)/sizeof(AbbreviationTable[0]); ++AbbrNum)
+	{
+		const char *Name = AbbreviationTable[AbbrNum].Name;
+		if (IncomingPointer >= strlen(Name) && !strncmp(IncomingBuffer, Name, strlen(Name)))
+		{
+			Token = AbbreviationTable[AbbrNum].Token;
+			TokenLen = strlen(Name);
+			NextChar = IncomingBuffer[TokenLen];
+			break;
+		}
+		char *DotPtr = reinterpret_cast<char *>(memchr(IncomingBuffer, '.', IncomingPointer));
+		if (DotPtr && DotPtr > IncomingBuffer)
+		{
+			int AbbreviationLen = DotPtr - IncomingBuffer;
+			int i;
+			for (i = 0; i < AbbreviationLen && IncomingBuffer[i] == Name[i]; ++i)
+				;
+			if (i == AbbreviationLen)
+			{
+				Token = AbbreviationTable[AbbrNum].Token;
+				TokenLen = AbbreviationLen + 1; // +1 to include '.'
+				NextChar = IncomingBuffer[TokenLen];
+				break;
+			}
+		}
 	}
 
 	/* check if this is a number start */
@@ -639,7 +803,7 @@ bool EncodeLine()
 			Uint8 Flags = KeyWordTable[Token - 0x80].Flags; //make copy of flags, as we're about to throwaway Token
 
 			WriteByte(Token);	//write token
-			EatCharacters(KeyWordTable[Token - 0x80].StrLen);
+			EatCharacters(TokenLen);
 
 			/*
 			
