@@ -143,6 +143,8 @@ int main( int argc, char* argv[] )
 					cout << " -boot <file>   Specify a filename to be run by !BOOT on a new disc image" << endl;
 					cout << " -opt <opt>     Specify the *OPT 4,n for the generated disc image" << endl;
 					cout << " -title <title> Specify the title for the generated disc image" << endl;
+					cout << " -w             Require whitespace between opcodes and labels" << endl;
+					cout << " -vc            Use Visual C++-style error messages" << endl;
 					cout << " -v             Verbose output" << endl;
 					cout << " -d             Dump all global symbols after assembly" << endl;
 					cout << " -w             Require whitespace between opcodes and labels" << endl;

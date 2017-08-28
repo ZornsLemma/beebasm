@@ -39,16 +39,17 @@
 
 */
 
+// TODO: We can almost certainly merge KeyWordTable and AbbreviationTable in the source and have
+// SetupBASICTables derive the necessary run-time data structures.
+
 struct KeyWord
 {
 	KeyWord(const char* name, Uint8 flags)
-		: Name(name), Flags(flags), StrLen(0), Next(NULL)
+		: Name(name), Flags(flags)
 	{}
 
 	const char *Name;
 	Uint8 Flags;
-	unsigned int StrLen;
-	struct KeyWord *Next;
 };
 
 struct KeyWord KeyWordTable[0x80] =
@@ -118,81 +119,168 @@ struct KeyWord KeyWordTable[0x80] =
 	KeyWord("TRACE",0x12),		KeyWord("UNTIL",0x02),		KeyWord("WIDTH",0x02),		KeyWord("OSCLI",0x02)
 };
 
-KeyWord *QuickTable[26*26];
+struct Abbreviation
+{
+	Abbreviation(const char* name, Uint8 token, int minabbrlen)
+		: Name(name), Token(token), MinAbbrLen(minabbrlen)
+	{}
+
+	const char *Name;
+	Uint8 Token;
+	int MinAbbrLen;
+};
+
+struct Abbreviation AbbreviationTable[] =
+{
+	Abbreviation("ABS", 0x94, 3),
+	Abbreviation("ACS", 0x95, 3),
+	Abbreviation("ADVAL", 0x96, 2),
+	Abbreviation("AND", 0x80, 1),
+	Abbreviation("ASC", 0x97, 3),
+	Abbreviation("ASN", 0x98, 3),
+	Abbreviation("ATN", 0x99, 3),
+
+	Abbreviation("BGET", 0x9a, 1),
+	Abbreviation("BPUT", 0xd5, 2),
+
+	Abbreviation("CALL", 0xd6, 2),
+	Abbreviation("CHAIN", 0xd7, 2),
+	Abbreviation("CHR$", 0xbd, 3),
+	Abbreviation("CLEAR", 0xd8, 2),
+	Abbreviation("CLG", 0xda, 3),
+	Abbreviation("CLOSE", 0xd9, 3),
+	Abbreviation("CLS", 0xdb, 3),
+	Abbreviation("COLOR", 0xfb, 1),
+	Abbreviation("COLOUR", 0xfb, 1),
+	Abbreviation("COS", 0x9b, 3),
+	Abbreviation("COUNT", 0x9c, 3),
+
+	Abbreviation("DATA", 0xdc, 1),
+	Abbreviation("DEF", 0xdd, 3),
+	Abbreviation("DEG", 0x9d, 3),
+	Abbreviation("DIM", 0xde, 3),
+	Abbreviation("DIV", 0x81, 3),
+	Abbreviation("DRAW", 0xdf, 2),
+
+	Abbreviation("ELSE", 0x8b, 2),
+	Abbreviation("ENDPROC", 0xe1, 1),
+	Abbreviation("END", 0xe0, 3),
+	Abbreviation("ENVELOPE", 0xe2, 3),
+	Abbreviation("EOF", 0xc5, 3),
+	Abbreviation("EOR", 0x82, 3),
+	Abbreviation("ERL", 0x9e, 3),
+	Abbreviation("ERR", 0x9f, 3),
+	Abbreviation("ERROR", 0x85, 3),
+	Abbreviation("EVAL", 0xa0, 2),
+	Abbreviation("EXP", 0xa1, 3),
+	Abbreviation("EXT", 0xa2, 3),
+
+	Abbreviation("FALSE", 0xa3, 2),
+	Abbreviation("FN", 0xa4, 2),
+	Abbreviation("FOR", 0xe3, 1),
+
+	Abbreviation("GCOL", 0xe6, 2),
+	Abbreviation("GET", 0xa5, 3),
+	Abbreviation("GET$", 0xbe, 2),
+	Abbreviation("GOSUB", 0xe4, 3),
+	Abbreviation("GOTO", 0xe5, 1),
+
+	Abbreviation("HIMEM", 0x93, 1),
+	Abbreviation("HIMEM", 0xd3, 1),
+
+	Abbreviation("IF", 0xe7, 2),
+	Abbreviation("INKEY", 0xa6, 5),
+	Abbreviation("INKEY$", 0xbf, 3),
+	Abbreviation("INPUT", 0xe8, 1),
+	Abbreviation("INSTR(", 0xa7, 3),
+	Abbreviation("INT", 0xa8, 3),
+
+	Abbreviation("LEFT$(", 0xc0, 2),
+	Abbreviation("LEN", 0xa9, 3),
+	Abbreviation("LET", 0xe9, 3),
+	Abbreviation("LINE", 0x86, 4),
+	Abbreviation("LN", 0xaa, 2),
+	Abbreviation("LOCAL", 0xea, 3),
+	Abbreviation("LOG", 0xab, 3),
+	Abbreviation("LOMEM", 0x92, 3),
+	Abbreviation("LOMEM", 0xd2, 3),
+
+	Abbreviation("MID$(", 0xc1, 1),
+	Abbreviation("MOD", 0x83, 3),
+	Abbreviation("MODE", 0xeb, 2),
+	Abbreviation("MOVE", 0xec, 3),
+
+	Abbreviation("NEXT", 0xed, 1),
+	Abbreviation("NOT", 0xac, 3),
+
+	Abbreviation("OFF", 0x87, 3),
+	Abbreviation("ON", 0xee, 2),
+	Abbreviation("OPENIN", 0x8e, 2),
+	Abbreviation("OPENOUT", 0xae, 5),
+	Abbreviation("OPENUP", 0xad, 6),
+	Abbreviation("OR", 0x84, 2),
+	Abbreviation("OSCLI", 0xff, 3),
+
+	Abbreviation("PAGE", 0x90, 2),
+	Abbreviation("PAGE", 0xd0, 2),
+	Abbreviation("PI", 0xaf, 2),
+	Abbreviation("PLOT", 0xf0, 2),
+	Abbreviation("POINT(", 0xb0, 2),
+	Abbreviation("POS", 0xb1, 3),
+	Abbreviation("PRINT", 0xf1, 1),
+	Abbreviation("PROC", 0xf2, 3),
+	Abbreviation("PTR", 0x8f, 2),
+	Abbreviation("PTR", 0xcf, 2),
+
+	Abbreviation("RAD", 0xb2, 3),
+	Abbreviation("READ", 0xf3, 3),
+	Abbreviation("REM", 0xf4, 3),
+	Abbreviation("REPEAT", 0xf5, 3),
+	Abbreviation("REPORT", 0xf6, 4),
+	Abbreviation("RESTORE", 0xf7, 3),
+	Abbreviation("RETURN", 0xf8, 1),
+	Abbreviation("RIGHT$(", 0xc2, 2),
+	Abbreviation("RND", 0xb3, 3),
+	Abbreviation("RUN", 0xf9, 3),
+
+	Abbreviation("SGN", 0xb4, 3),
+	Abbreviation("SIN", 0xb5, 3),
+	Abbreviation("SOUND", 0xd4, 2),
+	Abbreviation("SPC", 0x89, 3),
+	Abbreviation("SQR", 0xb6, 3),
+	Abbreviation("STEP", 0x88, 1),
+	Abbreviation("STOP", 0xfa, 3),
+	Abbreviation("STR$", 0xc3, 3),
+	Abbreviation("STRING$(", 0xc4, 4),
+
+	Abbreviation("TAB(", 0x8a, 4),
+	Abbreviation("TAN", 0xb7, 1),
+	Abbreviation("THEN", 0x8c, 2),
+	Abbreviation("TIME", 0x91, 2),
+	Abbreviation("TIME", 0xd1, 2),
+	Abbreviation("TO", 0xb8, 2),
+	Abbreviation("TRACE", 0xfc, 2),
+	Abbreviation("TRUE", 0xb9, 4),
+
+	Abbreviation("UNTIL", 0xfd, 1),
+	Abbreviation("USR", 0xba, 3),
+
+	Abbreviation("VAL", 0xbb, 3),
+	Abbreviation("VDU", 0xef, 1),
+	Abbreviation("VPOS", 0xbc, 2),
+
+	Abbreviation("WIDTH", 0xfe, 1)
+};
 
 /*
 
-	Setup function, to establish contents of QuickTable, store strlens, etc
+       Setup function
 
 */
 
-#define HashCode(str)	(str[0] < 'A' || str[0] > 'Z' || str[1] < 'A' || str[1] > 'Z') ? 0 : ((str[0] - 'A')*26 + (str[1] - 'A'))
-
 void SetupBASICTables()
 {
-	/* set QuickTable to empty */
-	int c = 26*26;
-	while(c--)
-		QuickTable[c] = NULL;
-
-	/* go through tokens, store strlens & populate QuickTable */
-	for(c = 0; c < 0x80; c++)
-	{
-		if((KeyWordTable[c].StrLen = strlen(KeyWordTable[c].Name)))
-		{
-			/* reject any symbols that have already appeared 0x40 places earlier in the table */
-			if(c < 0x40 || strcmp(KeyWordTable[c].Name, KeyWordTable[c - 0x40].Name))
-			{
-				int Code = HashCode(KeyWordTable[c].Name);
-				KeyWord **InsertPointer = &QuickTable[Code];
-				while(*InsertPointer)
-					InsertPointer = &(*InsertPointer)->Next;
-
-				*InsertPointer = &KeyWordTable[c];
-			}
-		}
-	}
-
-	/*
-
-		Go through QuickTable, sorting each branch by string length
-
-		I'm an idiot, so I've used insertion sort!
-
-	*/
-	c = 26*26;
-	while(c--)
-		if(QuickTable[c] && QuickTable[c]->Next)
-		{
-			/* sort first by string length */
-			KeyWord **Check = &QuickTable[c];
-			unsigned int CurLength = (*Check)->StrLen;
-			Check = &(*Check)->Next;
-			while(*Check)
-			{
-				/* check if out of order */
-				if((*Check)->StrLen > CurLength)
-				{
-					/* unlink */
-					KeyWord *Takeout = *Check;
-					*Check = (*Check)->Next;
-
-					/* start at top of list, find correct insertion point */
-					KeyWord **InsertPoint = &QuickTable[c];
-					while((*InsertPoint)->StrLen >= Takeout->StrLen)
-						InsertPoint = &(*InsertPoint)->Next;
-
-					/* ...and insert */
-					Takeout->Next = *InsertPoint;
-					*InsertPoint = Takeout;
-				}
-				else
-				{
-					CurLength = (*Check)->StrLen;
-					Check = &(*Check)->Next;
-				}
-			}
-		}
+	// TODO: Get rid of this if it's not used; but it may well be in a tidier version.
 }
 
 /*
@@ -373,6 +461,7 @@ bool ExportBASIC(const char *Filename, Uint8 *Memory)
 
 char IncomingBuffer[9];
 Uint8 Token, NextChar;
+int TokenLen; // for Token>=0x80 only
 unsigned int IncomingPointer;
 FILE *inputfile;
 bool EndOfFile, NumberStart;
@@ -433,19 +522,37 @@ void GetCharacter()
 
 	/* check for tokens, set flags accordingly. Be a bit dense about this for now! */
 	Token = IncomingBuffer[0];
-	int Code = HashCode(IncomingBuffer);
-	KeyWord *CheckPtr = QuickTable[Code];
 
-	while(CheckPtr)
+	// TODO: This is a brute-force search of entire AbbreviationTable; we could at least partition
+	// it by initial letter to speed this up.
+	for (size_t AbbrNum = 0; AbbrNum < sizeof(AbbreviationTable)/sizeof(AbbreviationTable[0]); ++AbbrNum)
 	{
-		if(IncomingPointer >= CheckPtr->StrLen && !strncmp(IncomingBuffer, CheckPtr->Name, CheckPtr->StrLen))
+		const char *Name = AbbreviationTable[AbbrNum].Name;
+		if (IncomingPointer >= strlen(Name) && !strncmp(IncomingBuffer, Name, strlen(Name)))
 		{
-			Token = (CheckPtr - KeyWordTable) + 0x80;
-			NextChar = IncomingBuffer[CheckPtr->StrLen];
+			Token = AbbreviationTable[AbbrNum].Token;
+			TokenLen = strlen(Name);
+			NextChar = IncomingBuffer[TokenLen];
 			break;
 		}
-
-		CheckPtr = CheckPtr->Next;
+		char *DotPtr = reinterpret_cast<char *>(memchr(IncomingBuffer, '.', IncomingPointer));
+		if (DotPtr)
+		{
+			int AbbreviationLen = DotPtr - IncomingBuffer;
+			if (AbbreviationLen >= AbbreviationTable[AbbrNum].MinAbbrLen)
+			{
+				int i;
+				for (i = 0; i < AbbreviationLen && IncomingBuffer[i] == Name[i]; ++i)
+					;
+				if (i == AbbreviationLen)
+				{
+					Token = AbbreviationTable[AbbrNum].Token;
+					TokenLen = AbbreviationLen + 1; // +1 to include '.'
+					NextChar = IncomingBuffer[TokenLen];
+					break;
+				}
+			}
+		}
 	}
 
 	/* check if this is a number start */
@@ -639,7 +746,7 @@ bool EncodeLine()
 			Uint8 Flags = KeyWordTable[Token - 0x80].Flags; //make copy of flags, as we're about to throwaway Token
 
 			WriteByte(Token);	//write token
-			EatCharacters(KeyWordTable[Token - 0x80].StrLen);
+			EatCharacters(TokenLen);
 
 			/*
 			
