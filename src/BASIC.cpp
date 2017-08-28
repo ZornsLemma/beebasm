@@ -39,16 +39,17 @@
 
 */
 
+// TODO: We can almost certainly merge KeyWordTable and AbbreviationTable in the source and have
+// SetupBASICTables derive the necessary run-time data structures.
+
 struct KeyWord
 {
 	KeyWord(const char* name, Uint8 flags)
-		: Name(name), Flags(flags), StrLen(0), Next(NULL)
+		: Name(name), Flags(flags)
 	{}
 
 	const char *Name;
 	Uint8 Flags;
-	unsigned int StrLen;
-	struct KeyWord *Next;
 };
 
 struct KeyWord KeyWordTable[0x80] =
@@ -117,14 +118,6 @@ struct KeyWord KeyWordTable[0x80] =
 	KeyWord("RETURN",0x01),		KeyWord("RUN",	0x01),		KeyWord("STOP",	0x01),		KeyWord("COLOUR",0x02),
 	KeyWord("TRACE",0x12),		KeyWord("UNTIL",0x02),		KeyWord("WIDTH",0x02),		KeyWord("OSCLI",0x02)
 };
-
-KeyWord *QuickTable[26*26];
-
-/*
-
-	Setup function, to establish contents of QuickTable, store strlens, etc
-
-*/
 
 struct Abbreviation
 {
@@ -279,73 +272,15 @@ struct Abbreviation AbbreviationTable[] =
 	Abbreviation("WIDTH", 0xfe, 1)
 };
 
-#define HashCode(str)	(str[0] < 'A' || str[0] > 'Z' || str[1] < 'A' || str[1] > 'Z') ? 0 : ((str[0] - 'A')*26 + (str[1] - 'A'))
+/*
+
+       Setup function
+
+*/
 
 void SetupBASICTables()
 {
-	/* set QuickTable to empty */
-	int c = 26*26;
-	while(c--)
-		QuickTable[c] = NULL;
-
-	/* go through tokens, store strlens & populate QuickTable */
-	for(c = 0; c < 0x80; c++)
-	{
-		if((KeyWordTable[c].StrLen = strlen(KeyWordTable[c].Name)))
-		{
-			/* reject any symbols that have already appeared 0x40 places earlier in the table */
-			if(c < 0x40 || strcmp(KeyWordTable[c].Name, KeyWordTable[c - 0x40].Name))
-			{
-				int Code = HashCode(KeyWordTable[c].Name);
-				KeyWord **InsertPointer = &QuickTable[Code];
-				while(*InsertPointer)
-					InsertPointer = &(*InsertPointer)->Next;
-
-				*InsertPointer = &KeyWordTable[c];
-			}
-		}
-	}
-
-	/*
-
-		Go through QuickTable, sorting each branch by string length
-
-		I'm an idiot, so I've used insertion sort!
-
-	*/
-	c = 26*26;
-	while(c--)
-		if(QuickTable[c] && QuickTable[c]->Next)
-		{
-			/* sort first by string length */
-			KeyWord **Check = &QuickTable[c];
-			unsigned int CurLength = (*Check)->StrLen;
-			Check = &(*Check)->Next;
-			while(*Check)
-			{
-				/* check if out of order */
-				if((*Check)->StrLen > CurLength)
-				{
-					/* unlink */
-					KeyWord *Takeout = *Check;
-					*Check = (*Check)->Next;
-
-					/* start at top of list, find correct insertion point */
-					KeyWord **InsertPoint = &QuickTable[c];
-					while((*InsertPoint)->StrLen >= Takeout->StrLen)
-						InsertPoint = &(*InsertPoint)->Next;
-
-					/* ...and insert */
-					Takeout->Next = *InsertPoint;
-					*InsertPoint = Takeout;
-				}
-				else
-				{
-					CurLength = (*Check)->StrLen;
-					Check = &(*Check)->Next;
-				}
-			}
-		}
+	// TODO: Get rid of this if it's not used; but it may well be in a tidier version.
 }
 
 /*
@@ -587,23 +522,6 @@ void GetCharacter()
 
 	/* check for tokens, set flags accordingly. Be a bit dense about this for now! */
 	Token = IncomingBuffer[0];
-#if 0 // SFTODO
-	int Code = HashCode(IncomingBuffer);
-	KeyWord *CheckPtr = QuickTable[Code];
-
-	while(CheckPtr)
-	{
-		if(IncomingPointer >= CheckPtr->StrLen && !strncmp(IncomingBuffer, CheckPtr->Name, CheckPtr->StrLen))
-		{
-			Token = (CheckPtr - KeyWordTable) + 0x80;
-			TokenLen = CheckPtr->StrLen;
-			NextChar = IncomingBuffer[CheckPtr->StrLen];
-			break;
-		}
-
-		CheckPtr = CheckPtr->Next;
-	}
-#endif
 
 	// TODO: This is a brute-force search of entire AbbreviationTable; we could at least partition
 	// it by initial letter to speed this up.
