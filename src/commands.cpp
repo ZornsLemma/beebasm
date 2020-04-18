@@ -207,6 +207,8 @@ void LineParser::HandleDefineLabel()
 			{
 				throw AsmException_SyntaxError_SecondPassProblem( m_line, oldColumn );
 			}
+
+			SymbolTable::Instance().AddLabel( symbolName );
 		}
 
 		if ( GlobalData::Instance().ShouldOutputAsm() )
