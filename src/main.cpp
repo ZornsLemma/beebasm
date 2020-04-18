@@ -78,6 +78,7 @@ int main( int argc, char* argv[] )
 	} state = READY;
 
 	bool bDumpSymbols = false;
+	bool bDumpAllSymbols = false;
 
 	GlobalData::Create();
 	SymbolTable::Create();
@@ -133,6 +134,10 @@ int main( int argc, char* argv[] )
 				else if ( strcmp( argv[i], "-d" ) == 0 )
 				{
 					bDumpSymbols = true;
+				}
+				else if ( strcmp( argv[i], "-dd" ) == 0 )
+				{
+					bDumpAllSymbols = true;
 				}
 				else if ( strcmp( argv[i], "-D" ) == 0 )
 				{
@@ -292,9 +297,9 @@ int main( int argc, char* argv[] )
 
 	delete pDiscIm;
 
-	if ( bDumpSymbols && exitCode == EXIT_SUCCESS )
+	if ( (bDumpSymbols || bDumpAllSymbols) && exitCode == EXIT_SUCCESS )
 	{
-		SymbolTable::Instance().Dump();
+		SymbolTable::Instance().Dump(bDumpSymbols, bDumpAllSymbols);
 	}
 
 	if ( !GlobalData::Instance().IsSaved() && exitCode == EXIT_SUCCESS )

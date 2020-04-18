@@ -318,13 +318,13 @@ void SymbolTable::RemoveSymbol( const std::string& symbol )
 	Dumps all global symbols in the symbol table
 */
 /*************************************************************************************************/
-void SymbolTable::Dump() const
+void SymbolTable::Dump(bool global, bool all) const
 {
 	cout << "[{";
 
 	bool bFirst = true;
 
-	for ( map<string, Symbol>::const_iterator it = m_map.begin(); it != m_map.end(); ++it )
+	if (global) for ( map<string, Symbol>::const_iterator it = m_map.begin(); it != m_map.end(); ++it )
 	{
 		const string&	symbolName = it->first;
 		const Symbol&	symbol = it->second;
@@ -343,5 +343,70 @@ void SymbolTable::Dump() const
 		}
 	}
 
+	if (all) for (const Label & label : label_list)
+	{
+		if ( !bFirst )
+		{
+			cout << ",";
+		}
+
+		cout << "'" << label.identifier << "':" << label.addr << "L";
+
+		bFirst = false;
+	}
+
 	cout << "}]" << endl;
+}
+
+#include "globaldata.h"
+#include "objectcode.h"
+
+void SymbolTable::PushBrace()
+{
+	if (GlobalData::Instance().IsSecondPass())
+	{
+		int addr = ObjectCode::Instance().GetPC();
+		if (last_label.addr != addr)
+		{
+			std::ostringstream label; label << "._" << (label_scopes - last_label.scope);
+			last_label.identifier = (label_stack.empty() ? "" : label_stack.back().identifier) + label.str();
+			last_label.addr  = addr;
+		}
+		last_label.scope = label_scopes++;
+		label_stack.push_back(last_label);
+	}
+}
+
+void SymbolTable::PushFor(std::string symbol, double value)
+{
+	if (GlobalData::Instance().IsSecondPass())
+	{
+		int addr = ObjectCode::Instance().GetPC();
+		symbol = symbol.substr(0, symbol.find_first_of('@'));
+		std::ostringstream label; label << "._" << symbol << "_" << value;
+		last_label.identifier += label.str();
+		last_label.addr  = addr;
+		last_label.scope = label_scopes++;
+		label_stack.push_back(last_label);
+	}
+}
+
+void SymbolTable::AddLabel(const std::string & symbol)
+{
+	if (GlobalData::Instance().IsSecondPass())
+	{
+		int addr = ObjectCode::Instance().GetPC();
+		last_label.identifier = (label_stack.empty() ? "" : label_stack.back().identifier) + "." + symbol;
+		last_label.addr  = addr;
+		label_list.emplace_back(last_label);
+	}
+}
+
+void SymbolTable::PopScope()
+{
+	if (GlobalData::Instance().IsSecondPass())
+	{
+		label_stack.pop_back();
+		last_label = label_stack.empty() ? Label() : label_stack.back();
+	}
 }
