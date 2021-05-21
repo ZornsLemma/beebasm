@@ -145,6 +145,7 @@ void ObjectCode::InitialisePass()
 	SetCPU( 0 );
 	SetPC( 0 );
 	SymbolTable::Instance().ChangeSymbol( "P%", m_PC );
+	SetOPC( -1 );
 	SymbolTable::Instance().ChangeSymbol( "O%", 0 );
 
 	// Clear flags between passes

@@ -157,7 +157,8 @@ void LineParser::Process()
 			// Deal here with symbol assignment
 			bool bIsConditionalAssignment = false;
 
-			string symbolName = GetSymbolName() + m_sourceCode->GetSymbolNameSuffix();
+			string baseSymbolName = GetSymbolName();
+			string symbolName = baseSymbolName + m_sourceCode->GetSymbolNameSuffix();
 
 			if ( !AdvanceAndCheckEndOfStatement() )
 			{
@@ -179,13 +180,13 @@ void LineParser::Process()
 
 			double value = EvaluateExpression();
 
-			if ( symbolName == "P%" || symbolName == "O%" )
+			if ( baseSymbolName == "P%" || baseSymbolName == "O%" )
 			{
 				if ( value < 0 || value > 0xFFFF )
 				{
 					throw AsmException_SyntaxError_OutOfRange( m_line, oldColumn );
 				}
-				if ( symbolName == "P%" )
+				if ( baseSymbolName == "P%" )
 				{
 					ObjectCode::Instance().SetPC( value );
 				}
