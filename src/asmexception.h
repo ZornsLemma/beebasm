@@ -292,6 +292,7 @@ DEFINE_ASSEMBLE_EXCEPTION( Overlap, "Trying to assemble over existing code." );
 DEFINE_ASSEMBLE_EXCEPTION( InconsistentCode, "Assembled object code has changed between 1st and 2nd pass. Has a zero-page symbol been forward-declared?" );
 DEFINE_ASSEMBLE_EXCEPTION( FileOpen, "Error opening file." );
 DEFINE_ASSEMBLE_EXCEPTION( FileRead, "Error reading file." );
+DEFINE_ASSEMBLE_EXCEPTION( NoOffsetAddress, "O% must be set to use offset assembly." );
 
 
 /*************************************************************************************************/

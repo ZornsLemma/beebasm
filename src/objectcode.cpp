@@ -78,7 +78,9 @@ void ObjectCode::Destroy()
 /*************************************************************************************************/
 ObjectCode::ObjectCode()
 	:	m_PC( 0 ),
-	 	m_CPU( 0 )
+		m_OPC( -1 ),
+	 	m_CPU( 0 ),
+		m_OPT( 3 )
 {
 	memset( m_aMemory, 0, sizeof m_aMemory );
 	memset( m_aFlags, 0, sizeof m_aFlags );
@@ -117,6 +119,20 @@ void ObjectCode::SetCPU( int i )
 
 /*************************************************************************************************/
 /**
+	ObjectCode::SetOPT()
+
+	Set the assembly options
+*/
+/*************************************************************************************************/
+void ObjectCode::SetOPT( int i )
+{
+	m_OPT = i;
+}
+
+
+
+/*************************************************************************************************/
+/**
 	ObjectCode::InitialisePass()
 
 	Initialise at the beginning of each pass
@@ -129,6 +145,7 @@ void ObjectCode::InitialisePass()
 	SetCPU( 0 );
 	SetPC( 0 );
 	SymbolTable::Instance().ChangeSymbol( "P%", m_PC );
+	SymbolTable::Instance().ChangeSymbol( "O%", 0 );
 
 	// Clear flags between passes
 
@@ -152,28 +169,31 @@ void ObjectCode::InitialisePass()
 /*************************************************************************************************/
 void ObjectCode::PutByte( unsigned int byte )
 {
-	if ( m_PC > 0xFFFF )
+	int pc = GetPutAddress();
+
+	if ( pc > 0xFFFF )
 	{
 		throw AsmException_AssembleError_OutOfMemory();
 	}
 
-	assert( m_PC >= 0 && m_PC < 0x10000 );
+	assert( pc >= 0 && pc < 0x10000 );
 	assert( byte < 0x100 );
 
-	if ( m_aFlags[ m_PC ] & GUARD )
+	if ( m_aFlags[ pc ] & GUARD )
 	{
 		throw AsmException_AssembleError_GuardHit();
 	}
 
-	if ( m_aFlags[ m_PC ] & USED )
+	if ( m_aFlags[ pc ] & USED )
 	{
 		throw AsmException_AssembleError_Overlap();
 	}
 
-	m_aFlags[ m_PC ] |= USED;
-	m_aMemory[ m_PC++ ] = byte;
+	m_aFlags[ pc ] |= USED;
+	m_aMemory[ pc++ ] = byte;
+	IncrementPutAddress();
 
-	SymbolTable::Instance().ChangeSymbol( "P%", m_PC );
+	UpdatePCSymbols();
 }
 
 
@@ -187,36 +207,39 @@ void ObjectCode::PutByte( unsigned int byte )
 /*************************************************************************************************/
 void ObjectCode::Assemble1( unsigned int opcode )
 {
-	if ( m_PC > 0xFFFF )
+	int pc = GetPutAddress();
+
+	if ( pc > 0xFFFF )
 	{
 		throw AsmException_AssembleError_OutOfMemory();
 	}
 
-	assert( m_PC >= 0 && m_PC < 0x10000 );
+	assert( pc >= 0 && pc < 0x10000 );
 	assert( opcode < 0x100 );
 
 	if ( GlobalData::Instance().IsSecondPass() &&
-		 ( m_aFlags[ m_PC ] & CHECK ) &&
-		 !( m_aFlags[ m_PC ] & DONT_CHECK ) &&
-		 m_aMemory[ m_PC ] != opcode )
+		 ( m_aFlags[ pc ] & CHECK ) &&
+		 !( m_aFlags[ pc ] & DONT_CHECK ) &&
+		 m_aMemory[ pc ] != opcode )
 	{
 		throw AsmException_AssembleError_InconsistentCode();
 	}
 
-	if ( m_aFlags[ m_PC ] & GUARD )
+	if ( m_aFlags[ pc ] & GUARD )
 	{
 		throw AsmException_AssembleError_GuardHit();
 	}
 
-	if ( m_aFlags[ m_PC ] & USED )
+	if ( m_aFlags[ pc ] & USED )
 	{
 		throw AsmException_AssembleError_Overlap();
 	}
 
-	m_aFlags[ m_PC ] |= ( USED | CHECK );
-	m_aMemory[ m_PC++ ] = opcode;
+	m_aFlags[ pc ] |= ( USED | CHECK );
+	m_aMemory[ pc ] = opcode;
+	IncrementPutAddress();
 
-	SymbolTable::Instance().ChangeSymbol( "P%", m_PC );
+	UpdatePCSymbols();
 }
 
 
@@ -230,41 +253,45 @@ void ObjectCode::Assemble1( unsigned int opcode )
 /*************************************************************************************************/
 void ObjectCode::Assemble2( unsigned int opcode, unsigned int val )
 {
-	if ( m_PC > 0xFFFE )
+	int pc = GetPutAddress();
+
+	if ( pc > 0xFFFE )
 	{
 		throw AsmException_AssembleError_OutOfMemory();
 	}
 
-	assert( m_PC >= 0 && m_PC < 0x10000 );
+	assert( pc >= 0 && pc < 0x10000 );
 	assert( opcode < 0x100 );
 	assert( val < 0x100 );
 
 	if ( GlobalData::Instance().IsSecondPass() &&
-		 ( m_aFlags[ m_PC ] & CHECK ) &&
-		 !( m_aFlags[ m_PC ] & DONT_CHECK ) &&
-		 m_aMemory[ m_PC ] != opcode )
+		 ( m_aFlags[ pc ] & CHECK ) &&
+		 !( m_aFlags[ pc ] & DONT_CHECK ) &&
+		 m_aMemory[ pc ] != opcode )
 	{
 		throw AsmException_AssembleError_InconsistentCode();
 	}
 
-	if ( ( m_aFlags[ m_PC ] & GUARD ) ||
-		 ( m_aFlags[ m_PC + 1 ] & GUARD ) )
+	if ( ( m_aFlags[ pc ] & GUARD ) ||
+		 ( m_aFlags[ pc ] & GUARD ) )
 	{
 		throw AsmException_AssembleError_GuardHit();
 	}
 
-	if ( ( m_aFlags[ m_PC ] & USED ) ||
-		 ( m_aFlags[ m_PC + 1 ] & USED ) )
+	if ( ( m_aFlags[ pc ] & USED ) ||
+		 ( m_aFlags[ pc + 1 ] & USED ) )
 	{
 		throw AsmException_AssembleError_Overlap();
 	}
 
-	m_aFlags[ m_PC ] |= ( USED | CHECK );
-	m_aMemory[ m_PC++ ] = opcode;
-	m_aFlags[ m_PC ] |= USED;
-	m_aMemory[ m_PC++ ] = val;
+	m_aFlags[ pc ] |= ( USED | CHECK );
+	m_aMemory[ pc ] = opcode;
+	pc = IncrementPutAddress();
+	m_aFlags[ pc ] |= USED;
+	m_aMemory[ pc ] = val;
+	IncrementPutAddress();
 
-	SymbolTable::Instance().ChangeSymbol( "P%", m_PC );
+	UpdatePCSymbols();
 }
 
 
@@ -278,45 +305,49 @@ void ObjectCode::Assemble2( unsigned int opcode, unsigned int val )
 /*************************************************************************************************/
 void ObjectCode::Assemble3( unsigned int opcode, unsigned int addr )
 {
-	if ( m_PC > 0xFFFD )
+	int pc = GetPutAddress();
+	if ( pc > 0xFFFD )
 	{
 		throw AsmException_AssembleError_OutOfMemory();
 	}
 
-	assert( m_PC >= 0 && m_PC < 0x10000 );
+	assert( pc >= 0 && pc < 0x10000 );
 	assert( opcode < 0x100 );
 	assert( addr < 0x10000 );
 
 	if ( GlobalData::Instance().IsSecondPass() &&
-		 ( m_aFlags[ m_PC ] & CHECK ) &&
-		 !( m_aFlags[ m_PC ] & DONT_CHECK ) &&
-		 m_aMemory[ m_PC ] != opcode )
+		 ( m_aFlags[ pc ] & CHECK ) &&
+		 !( m_aFlags[ pc ] & DONT_CHECK ) &&
+		 m_aMemory[ pc ] != opcode )
 	{
 		throw AsmException_AssembleError_InconsistentCode();
 	}
 
-	if ( ( m_aFlags[ m_PC ] & GUARD ) ||
-		 ( m_aFlags[ m_PC + 1 ] & GUARD ) ||
-		 ( m_aFlags[ m_PC + 2 ] & GUARD ) )
+	if ( ( m_aFlags[ pc ] & GUARD ) ||
+		 ( m_aFlags[ pc + 1 ] & GUARD ) ||
+		 ( m_aFlags[ pc + 2 ] & GUARD ) )
 	{
 		throw AsmException_AssembleError_GuardHit();
 	}
 
-	if ( ( m_aFlags[ m_PC ] & USED ) ||
-		 ( m_aFlags[ m_PC + 1 ] & USED ) ||
-		 ( m_aFlags[ m_PC + 2 ] & USED ) )
+	if ( ( m_aFlags[ pc ] & USED ) ||
+		 ( m_aFlags[ pc + 1 ] & USED ) ||
+		 ( m_aFlags[ pc + 2 ] & USED ) )
 	{
 		throw AsmException_AssembleError_Overlap();
 	}
 
-	m_aFlags[ m_PC ] |= ( USED | CHECK );
-	m_aMemory[ m_PC++ ] = opcode;
-	m_aFlags[ m_PC ] |= USED;
-	m_aMemory[ m_PC++ ] = addr & 0xFF;
-	m_aFlags[ m_PC ] |= USED;
-	m_aMemory[ m_PC++ ] = ( addr & 0xFF00 ) >> 8;
+	m_aFlags[ pc ] |= ( USED | CHECK );
+	m_aMemory[ pc ] = opcode;
+	pc = IncrementPutAddress();
+	m_aFlags[ pc ] |= USED;
+	m_aMemory[ pc ] = addr & 0xFF;
+	pc = IncrementPutAddress();
+	m_aFlags[ pc ] |= USED;
+	m_aMemory[ pc ] = ( addr & 0xFF00 ) >> 8;
+	IncrementPutAddress();
 
-	SymbolTable::Instance().ChangeSymbol( "P%", m_PC );
+	UpdatePCSymbols();
 }
 
 
@@ -477,5 +508,64 @@ void ObjectCode::CopyBlock( int start, int end, int dest )
 			m_aFlags[ dest + i ] = m_aFlags[ start + i ];
 			m_aFlags[ start + i ] &= ( CHECK | DONT_CHECK );
 		}
+	}
+}
+
+
+
+/*************************************************************************************************/
+/**
+	ObjectCode::GetPutAddress()
+*/
+/*************************************************************************************************/
+int ObjectCode::GetPutAddress() const
+{
+	if ( m_OPT & 4 )
+	{
+		if ( m_OPC == -1 )
+		{
+			throw AsmException_AssembleError_NoOffsetAddress();
+		}
+		else
+		{
+			return m_OPC;
+		}
+	}
+	else
+	{
+		return m_PC;
+	}
+}
+
+
+
+/*************************************************************************************************/
+/**
+	ObjectCode::IncrementPutAddress()
+*/
+/*************************************************************************************************/
+int ObjectCode::IncrementPutAddress()
+{
+	m_PC++;
+	if ( m_OPT & 4 )
+	{
+		m_OPC++;
+	}
+	return GetPutAddress();
+}
+
+
+
+/*************************************************************************************************/
+/**
+	ObjectCode::UpdatePCSymbols()
+*/
+/*************************************************************************************************/
+void ObjectCode::UpdatePCSymbols()
+{
+	SymbolTable::Instance().ChangeSymbol( "P%", m_PC );
+	if ( m_OPT & 4 )
+	{
+		SymbolTable::Instance().ChangeSymbol( "O%", m_OPC );
 	}
 }

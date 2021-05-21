@@ -38,8 +38,14 @@ public:
 	inline void SetPC( int i )		{ m_PC = i; }
 	inline int GetPC() const		{ return m_PC; }
 
+	inline void SetOPC( int i )		{ m_OPC = i; }
+
 	void SetCPU( int i );
 	inline int GetCPU() const		{ return m_CPU; }
+
+	void SetOPT( int i );
+
+	void UpdatePCSymbols();
 
 	inline const unsigned char* GetAddr( int i ) const { return m_aMemory + i; }
 
@@ -73,10 +79,15 @@ private:
 	ObjectCode();
 	~ObjectCode();
 
+	int GetPutAddress() const;
+	int IncrementPutAddress();
+
 	unsigned char				m_aMemory[ 0x10000 ];
 	unsigned char				m_aFlags[ 0x10000 ];
 	int							m_PC;
+	int							m_OPC;
 	int							m_CPU;
+	int							m_OPT;
 
 	unsigned char				m_aMapChar[ 96 ];
 

@@ -85,6 +85,7 @@ SymbolTable::SymbolTable()
 
 	AddSymbol( "PI", const_pi );
 	AddSymbol( "P%", 0 );
+	AddSymbol( "O%", 0 );
 	AddSymbol( "TRUE", -1 );
 	AddSymbol( "FALSE", 0 );
 }
