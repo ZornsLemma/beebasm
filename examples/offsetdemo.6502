@@ -1,0 +1,58 @@
+\ Copy code into the screen RAM and execute it from there; this is silly, but
+\ it shows the relocation happening...
+
+oswrch = &ffee
+
+org &2000
+
+\ This code is assembled at &2000 and is intended to run there.
+opt 3
+.start
+{
+    lda #22:jsr oswrch:lda #4:jsr oswrch
+    ldx #0
+.copy_loop
+    lda screen_code_copy_from,x:sta screen_code,x
+    inx:bne copy_loop
+    jsr screen_code
+    jmp finish
+}
+
+\ This code is assembled immediately after the "jmp finish" at &20xx
+\ but it is intended to run at &5e40.
+.screen_code_copy_from
+opt 4:O%=P%:P%=&5e40
+.screen_code
+{
+    \ Use absolute jumps to show they use the right addresses.
+    lda #0:sta &70
+    lda #&70:sta &71
+    lda #255:ldy #0
+.loop
+    sta (&70),y
+    inc &70:beq low_byte_zero:jmp loop:.low_byte_zero
+    inc &71:ldx &71:bpl high_byte_lt_80:jmp done:.high_byte_lt_80
+    jmp loop
+.done
+    rts
+}
+
+\ This code is assembled immediately after the "rts" at &20xx and
+\ is intended to run there.
+opt 3:P%=O%
+.finish
+{
+    \ Use some absolute jumps to show they use the right addresses.
+    lda #'A':jsr oswrch
+    jmp finish_b
+.finish_c
+    lda #'C':jsr oswrch
+    rts
+.finish_b
+    lda #'B':jsr oswrch
+    jmp finish_c
+}
+
+.end
+
+save "test", start, end

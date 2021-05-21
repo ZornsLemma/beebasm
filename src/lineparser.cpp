@@ -29,6 +29,7 @@
 #include "symboltable.h"
 #include "globaldata.h"
 #include "sourcefile.h"
+#include "objectcode.h"
 
 
 using namespace std;
@@ -178,7 +179,23 @@ void LineParser::Process()
 
 			double value = EvaluateExpression();
 
-			if ( GlobalData::Instance().IsFirstPass() )
+			if ( symbolName == "P%" || symbolName == "O%" )
+			{
+				if ( value < 0 || value > 0xFFFF )
+				{
+					throw AsmException_SyntaxError_OutOfRange( m_line, oldColumn );
+				}
+				if ( symbolName == "P%" )
+				{
+					ObjectCode::Instance().SetPC( value );
+				}
+				else
+				{
+					ObjectCode::Instance().SetOPC( value );
+				}
+				ObjectCode::Instance().UpdatePCSymbols();
+			}
+			else if ( GlobalData::Instance().IsFirstPass() )
 			{
 				// only add the symbol on the first pass
 

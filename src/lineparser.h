@@ -131,6 +131,7 @@ private:
 	void			HandleDirective();
 	void			HandlePrint();
 	void			HandleCpu();
+	void			HandleOpt();
 	void			HandleOrg();
 	void			HandleInclude();
 	void			HandleIncBin();

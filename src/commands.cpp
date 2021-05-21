@@ -51,6 +51,7 @@ const LineParser::Token	LineParser::m_gaTokenTable[] =
 	{ ":",			&LineParser::HandleStatementSeparator,	0 },
 	{ "PRINT",		&LineParser::HandlePrint,				0 },
 	{ "CPU",		&LineParser::HandleCpu,					0 },
+	{ "OPT",		&LineParser::HandleOpt,					0 },
 	{ "ORG",		&LineParser::HandleOrg,					0 },
 	{ "INCLUDE",	&LineParser::HandleInclude,				0 },
 	{ "EQUB",		&LineParser::HandleEqub,				0 },
@@ -307,6 +308,30 @@ void LineParser::HandleCpu()
 	}
 
 	ObjectCode::Instance().SetCPU( newCpu );
+
+	if ( m_column < m_line.length() && m_line[ m_column ] == ',' )
+	{
+		// Unexpected comma (remembering that an expression can validly end with a comma)
+		throw AsmException_SyntaxError_UnexpectedComma( m_line, m_column );
+	}
+}
+
+
+
+/*************************************************************************************************/
+/**
+	LineParser::HandleOpt()
+*/
+/*************************************************************************************************/
+void LineParser::HandleOpt()
+{
+	int newOpt = EvaluateExpressionAsInt();
+	if ( newOpt < 0 || newOpt > 7 )
+	{
+		throw AsmException_SyntaxError_OutOfRange( m_line, m_column );
+	}
+
+	ObjectCode::Instance().SetOPT( newOpt );
 
 	if ( m_column < m_line.length() && m_line[ m_column ] == ',' )
 	{
