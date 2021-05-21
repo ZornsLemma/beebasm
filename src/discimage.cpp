@@ -22,6 +22,7 @@
 
 #include <cstdlib>
 #include <cstring>
+#include <sstream>
 #include "discimage.h"
 #include "asmexception.h"
 #include "globaldata.h"
@@ -37,8 +38,7 @@ using namespace std;
 */
 /*************************************************************************************************/
 DiscImage::DiscImage( const char* pOutput, const char* pInput )
-	:	m_outputFilename( pOutput ),
-		m_inputFilename( pInput )
+	:	m_outputFilename( pOutput )
 {
 	// open output file
 
@@ -112,6 +112,7 @@ DiscImage::DiscImage( const char* pOutput, const char* pInput )
 		// generate a blank catalog
 
 		memset( m_aCatalog, 0, 0x200 );
+		m_aCatalog[ 0x104 ] = GlobalData::Instance().GetDiscWrites();
 		m_aCatalog[ 0x106 ] = 0x03 | ( ( GlobalData::Instance().GetDiscOption() & 3 ) << 4);
 		m_aCatalog[ 0x107 ] = 0x20;
 
@@ -132,12 +133,10 @@ DiscImage::DiscImage( const char* pOutput, const char* pInput )
 
 		if ( GlobalData::Instance().GetBootFile() != NULL )
 		{
-			char pPlingBoot[ 64 ];
-			strcpy( pPlingBoot, "*BASIC\r*RUN " );
-			strcat( pPlingBoot, GlobalData::Instance().GetBootFile() );
-			strcat( pPlingBoot, "\r" );
-
-			AddFile( "!Boot", reinterpret_cast< unsigned char* >( pPlingBoot ), 0, 0xFFFFFF, strlen( pPlingBoot ) );
+			ostringstream streamPlingBoot;
+			streamPlingBoot << "*BASIC\r*RUN " << GlobalData::Instance().GetBootFile() << "\r";
+			const std::string& strPlingBoot = streamPlingBoot.str();
+			AddFile( "!Boot", reinterpret_cast< const unsigned char* >( strPlingBoot.c_str() ), 0, 0xFFFFFF, strPlingBoot.length() );
 
 			m_aCatalog[ 0x106 ] = 0x33;		// force *OPT to 3 (EXEC)
 		}

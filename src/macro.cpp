@@ -60,9 +60,9 @@ Macro::Macro( const string& filename, int lineNumber )
 */
 /*************************************************************************************************/
 MacroInstance::MacroInstance( const Macro* macro, const SourceCode* sourceCode )
-	:	SourceCode( macro->GetFilename(), macro->GetLineNumber() ),
-		m_stream( macro->GetBody() ),
-		m_macro( macro )
+	:	SourceCode( macro->GetFilename(), macro->GetLineNumber(), sourceCode ),
+		m_stream( macro->GetBody() )
+		//,m_macro( macro )
 {
 //	cout << "Instance macro: " << m_macro->GetName() << " (" << m_filename << ":" << m_lineNumber << ")" << endl;
 

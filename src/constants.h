@@ -1,9 +1,9 @@
 /*************************************************************************************************/
 /**
-	stringutils.h
+	constants.h
 
 
-	Copyright (C) Rich Talbot-Watkins 2007 - 2012
+	Copyright (C) 2018
 
 	This file is part of BeebAsm.
 
@@ -20,18 +20,10 @@
 */
 /*************************************************************************************************/
 
-#ifndef STRINGUTILS_H_
-#define STRINGUTILS_H_
+#ifndef CONSTANTS_H_
+#define CONSTANTS_H_
 
-#include <string>
+// openbsd's M_PI contains a C-style cast, which clashes with gcc's -Wold-style-cast
+const double const_pi = 3.14159265358979323846;
 
-
-namespace StringUtils
-{
-	void ExpandTabsToSpaces( std::string& line, size_t tabWidth );
-	bool EatWhitespace( const std::string& line, size_t& column );
-	std::string FormattedErrorLocation ( const std::string& filename, int lineNumber );
-}
-
-
-#endif // STRINGUTILS_H_
+#endif // CONSTANTS_H_

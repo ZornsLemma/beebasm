@@ -36,6 +36,7 @@
 #include "objectcode.h"
 #include "sourcefile.h"
 #include "random.h"
+#include "constants.h"
 
 
 using namespace std;
@@ -128,6 +129,11 @@ double LineParser::GetValue()
 		istringstream str( m_line );
 		str.seekg( m_column );
 		str >> value;
+		if (str.fail())
+		{
+			// A decimal point with no number will cause this
+			throw AsmException_SyntaxError_InvalidCharacter( m_line, m_column );
+		}
 		m_column = static_cast< size_t >( str.tellg() );
 	}
 	else if ( m_column < m_line.length() && ( m_line[ m_column ] == '&' || m_line[ m_column ] == '$' ) )
@@ -281,7 +287,7 @@ double LineParser::EvaluateExpression( bool bAllowOneMismatchedCloseBracket )
 				bool bMatch = true;
 				for ( unsigned int j = 0; j < len; j++ )
 				{
-					if ( token[ j ] != toupper( m_line[ m_column + j ] ) )
+					if ( ( m_column + j >= m_line.length() ) || ( token[ j ] != toupper( m_line[ m_column + j ] ) ) )
 					{
 						bMatch = false;
 						break;
@@ -1214,7 +1220,7 @@ void LineParser::EvalDegToRad()
 	{
 		throw AsmException_SyntaxError_MissingValue( m_line, m_column );
 	}
-	m_valueStack[ m_valueStackPtr - 1 ] = m_valueStack[ m_valueStackPtr - 1 ] * M_PI / 180.0;
+	m_valueStack[ m_valueStackPtr - 1 ] = m_valueStack[ m_valueStackPtr - 1 ] * const_pi / 180.0;
 }
 
 
@@ -1230,7 +1236,7 @@ void LineParser::EvalRadToDeg()
 	{
 		throw AsmException_SyntaxError_MissingValue( m_line, m_column );
 	}
-	m_valueStack[ m_valueStackPtr - 1 ] = m_valueStack[ m_valueStackPtr - 1 ] * 180.0 / M_PI;
+	m_valueStack[ m_valueStackPtr - 1 ] = m_valueStack[ m_valueStackPtr - 1 ] * 180.0 / const_pi;
 }
 
 

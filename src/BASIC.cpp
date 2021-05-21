@@ -24,6 +24,7 @@
 /*************************************************************************************************/
 
 #include "BASIC.h"
+#include <sstream>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -210,13 +211,15 @@ const char *ErrorTable[] =
 	"Malformed BASIC program or not running BASIC",
 	"BASIC program appears to run past the end of RAM"
 };
-char DynamicErrorText[256];
+std::ostringstream DynamicErrorText;
+std::string DynamicErrorTextString;
 
 int ErrorNum;
 
 const char *GetBASICError()
 {
-	return ErrorNum >= 0 ? ErrorTable[ErrorNum] : DynamicErrorText;
+	DynamicErrorTextString = DynamicErrorText.str();
+	return ErrorNum >= 0 ? ErrorTable[ErrorNum] : DynamicErrorTextString.c_str();
 }
 
 int GetBASICErrorNum()
@@ -308,7 +311,7 @@ bool ExportBASIC(const char *Filename, Uint8 *Memory)
 		return false;
 	}
 
-	/* get the value of PAGE‚ start reading BASIC code from there */
+	/* get the value of PAGE, start reading BASIC code from there */
 	Uint16 Addr = Memory[0x18] << 8;
 
 	if(Addr >= 32768 - 4)
@@ -490,7 +493,11 @@ bool CopyStringLiteral()
 	if(IncomingBuffer[0] != '"') // stopped going for some reason other than a close quote
 	{
 		ErrorNum = -1;
-		sprintf(DynamicErrorText, "Malformed string literal on line %d", CurLine);
+		if(IncomingBuffer[0] == '\n')
+		{
+			--CurLine;
+		}
+		DynamicErrorText << "Malformed string literal on line " << CurLine;
 		return false;
 	}
 
@@ -584,6 +591,8 @@ bool EncodeLine()
 
 					if(Token == ':') // a colon always switches the tokeniser back to "start of statement" mode
 						StartOfStatement = true;
+					else if(Token == '=') // an equals sign always switches the tokeniser back to "middle of statement" mode
+						StartOfStatement = false;
 
 					// grab entire variables rather than allowing bits to be tokenised
 					if
@@ -673,9 +682,7 @@ bool EncodeLine()
 				}
 			}
 
-			if(
-				(Flags & 0x40) && StartOfStatement
-			)
+			if((Flags & 0x40) && StartOfStatement)
 			{
 				/* pseudo-variable flag */
 				Memory[Addr-1] += 0x40;	//adjust just-written token
@@ -691,7 +698,8 @@ bool EncodeLine()
 		}
 	}
 
-	EatCharacters(1);	//either eat a '\n' or have no effect at all
+	if (!EndOfFile && Token == '\n' && !ErrorNum)
+		EatCharacters(1);	// Eat a '\n'
 
 	return true;
 }
@@ -704,7 +712,7 @@ bool ImportBASIC(const char *Filename, Uint8 *Mem, int* Size)
 	Addr = 0;
 
 #if 0
-	/* get the value of PAGE‚ insert BASIC code starting from there */
+	/* get the value of PAGE, insert BASIC code starting from there */
 	Addr = Memory[0x18] << 8;
 
 	/* validity check: does PAGE currently point to a 0x0d? */
@@ -750,7 +758,7 @@ bool ImportBASIC(const char *Filename, Uint8 *Mem, int* Size)
 	{
 		/* get line number */
 			/* skip white space and empty lines */
-			while(Token == ' ' || Token == '\t' || Token == '\r' || Token == '\n')
+			while(!EndOfFile && (Token == ' ' || Token == '\t' || Token == '\r' || Token == '\n'))
 				EatCharacters(1);
 				
 			/* end of file? */
@@ -762,7 +770,7 @@ bool ImportBASIC(const char *Filename, Uint8 *Mem, int* Size)
 				if (NumberValue <= LastLineNumber)
 				{
 					ErrorNum = -1;
-					sprintf(DynamicErrorText, "Out of sequence line numbers (%d followed by %d) at line %d", LastLineNumber, NumberValue, CurLine);
+					DynamicErrorText << "Out of sequence line numbers (" << LastLineNumber << " followed by " << NumberValue << ") at line " << CurLine;
 					break;
 				}
 				LastLineNumber = NumberValue;
@@ -776,7 +784,7 @@ bool ImportBASIC(const char *Filename, Uint8 *Mem, int* Size)
 			if(LastLineNumber >= 32768)
 			{
 				ErrorNum = -1;
-				sprintf(DynamicErrorText, "Malformed line number at line %d", CurLine);
+				DynamicErrorText << "Malformed line number at line " << CurLine;
 				break;
 			}
 			/* inject into memory */
@@ -793,7 +801,8 @@ bool ImportBASIC(const char *Filename, Uint8 *Mem, int* Size)
 		if(Length >= 256)
 		{
 			ErrorNum = -1;
-			sprintf(DynamicErrorText, "Overly long line at line %d", CurLine);
+			/* CurLine - 1 because we've incremented it on seeing '\n' */
+			DynamicErrorText << "Overly long line at line " << CurLine - 1;
 			break;
 		}
 		Memory[LengthAddr] = static_cast<Uint8>(Length);
