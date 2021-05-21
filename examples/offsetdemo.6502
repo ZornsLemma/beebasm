@@ -21,7 +21,7 @@ opt 3
 \ This code is assembled immediately after the "jmp finish" at &20xx
 \ but it is intended to run at &5e40.
 .screen_code_copy_from
-opt 4:O%=P%:P%=&5e40
+opt 7:O%=P%:P%=&5e40
 .screen_code
 {
     \ Use absolute jumps to show they use the right addresses.
